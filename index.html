@@ -83,18 +83,19 @@
       function updateNav(user) {
         const adminLink = document.getElementById('admin-link');
         const ordersLink = document.getElementById('orders-link');
-        if (user && allowedEmails.includes(user.email)) {
-          adminLink.style.display = 'inline-block';
-          ordersLink.style.display = 'inline-block';
-        } else {
-          adminLink.style.display = 'none';
-          ordersLink.style.display = 'none';
+        if (adminLink && ordersLink) {
+          if (user && allowedEmails.includes(user.email)) {
+            adminLink.style.display = 'inline-block';
+            ordersLink.style.display = 'inline-block';
+          } else {
+            adminLink.style.display = 'none';
+            ordersLink.style.display = 'none';
+          }
         }
       }
       auth.onAuthStateChanged(function(user) {
         updateNav(user);
       });
-      // For static preview, show nav if already signed in
       window.addEventListener('DOMContentLoaded', function() {
         updateNav(auth.currentUser);
       });

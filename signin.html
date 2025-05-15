@@ -35,14 +35,13 @@
         </ul>
     </nav>
     <div class="container">
-        <div class="content">
+        <div class="signin-card">
             <h2>Sign In / Sign Up</h2>
-            <div id="auth-section">
-                <button id="google-signin-btn">Sign in with Google</button>
-                <button id="google-signout-btn" style="display:none;">Sign out</button>
-                <span id="user-info"></span>
-            </div>
-            <div id="signin-error" style="display:none;"></div>
+            <p>Sign in or sign up with your Google account to access Labubuy features.</p>
+            <button id="google-signin-btn" class="google-btn"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo" style="width:20px;vertical-align:middle;margin-right:8px;">Sign in with Google</button>
+            <button id="google-signout-btn" class="signout-btn" style="display:none;">Sign out</button>
+            <div id="user-info" class="user-info"></div>
+            <div id="signin-error" class="error-message" style="display:none;"></div>
         </div>
     </div>
     <footer>
@@ -51,6 +50,16 @@
     </footer>
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth-compat.js"></script>
+    <style>
+      body { background: linear-gradient(135deg, #f8fafc 0%, #ffe4ec 100%); min-height: 100vh; }
+      .signin-card { max-width: 400px; margin: 60px auto; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 36px 32px; text-align: center; }
+      .google-btn { background: #4285F4; color: #fff; border: none; border-radius: 5px; padding: 12px 24px; font-size: 1.1em; cursor: pointer; margin-top: 18px; transition: background 0.2s; }
+      .google-btn:hover { background: #357ae8; }
+      .signout-btn { background: #e74c3c; color: #fff; border: none; border-radius: 5px; padding: 10px 20px; font-size: 1em; cursor: pointer; margin-top: 18px; }
+      .signout-btn:hover { background: #c0392b; }
+      .user-info { margin-top: 18px; font-weight: 500; color: #222; }
+      .error-message { color: #dc3545; margin-top: 16px; font-weight: 500; }
+    </style>
     <script>
       const firebaseConfig = {
         apiKey: "AIzaSyAHgPtlNvBvSgzi8R-C6v9-FBh6vcNxBX4",
@@ -68,12 +77,14 @@
       function updateNav(user) {
         const adminLink = document.getElementById('admin-link');
         const ordersLink = document.getElementById('orders-link');
-        if (user && allowedEmails.includes(user.email)) {
-          adminLink.style.display = 'inline-block';
-          ordersLink.style.display = 'inline-block';
-        } else {
-          adminLink.style.display = 'none';
-          ordersLink.style.display = 'none';
+        if (adminLink && ordersLink) {
+          if (user && allowedEmails.includes(user.email)) {
+            adminLink.style.display = 'inline-block';
+            ordersLink.style.display = 'inline-block';
+          } else {
+            adminLink.style.display = 'none';
+            ordersLink.style.display = 'none';
+          }
         }
       }
       auth.onAuthStateChanged(function(user) {
@@ -82,44 +93,44 @@
       window.addEventListener('DOMContentLoaded', function() {
         updateNav(auth.currentUser);
       });
-    </script>
-    const googleSigninBtn = document.getElementById('google-signin-btn');
-    const googleSignoutBtn = document.getElementById('google-signout-btn');
-    const userInfoSpan = document.getElementById('user-info');
-    const signinErrorDiv = document.getElementById('signin-error');
-    function renderUser(user) {
-      if (user) {
-        userInfoSpan.textContent = `Signed in as ${user.displayName} (${user.email})`;
-        googleSigninBtn.style.display = 'none';
-        googleSignoutBtn.style.display = 'inline-block';
-      } else {
-        userInfoSpan.textContent = '';
-        googleSigninBtn.style.display = 'inline-block';
-        googleSignoutBtn.style.display = 'none';
-      }
-    }
-    googleSigninBtn.onclick = function() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch(function(error) {
-        signinErrorDiv.textContent = 'Sign-in failed: ' + error.message;
-        signinErrorDiv.style.display = 'block';
-      });
-    };
-    googleSignoutBtn.onclick = function() {
-      auth.signOut();
-    };
-    auth.onAuthStateChanged(function(user) {
-      renderUser(user);
-      if (user) {
-        signinErrorDiv.style.display = 'none';
-        // Redirect based on role
-        if (allowedEmails.includes(user.email)) {
-          window.location.href = 'admin.html';
+      const googleSigninBtn = document.getElementById('google-signin-btn');
+      const googleSignoutBtn = document.getElementById('google-signout-btn');
+      const userInfoDiv = document.getElementById('user-info');
+      const signinErrorDiv = document.getElementById('signin-error');
+      function renderUser(user) {
+        if (user) {
+          userInfoDiv.textContent = `Signed in as ${user.displayName} (${user.email})`;
+          googleSigninBtn.style.display = 'none';
+          googleSignoutBtn.style.display = 'inline-block';
         } else {
-          window.location.href = 'index.html';
+          userInfoDiv.textContent = '';
+          googleSigninBtn.style.display = 'inline-block';
+          googleSignoutBtn.style.display = 'none';
         }
       }
-    });
+      googleSigninBtn.onclick = function() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        auth.signInWithPopup(provider).catch(function(error) {
+          signinErrorDiv.textContent = 'Sign-in failed: ' + error.message;
+          signinErrorDiv.style.display = 'block';
+        });
+      };
+      googleSignoutBtn.onclick = function() {
+        auth.signOut();
+      };
+      auth.onAuthStateChanged(function(user) {
+        renderUser(user);
+        if (user) {
+          signinErrorDiv.style.display = 'none';
+          // Redirect based on role
+          if (allowedEmails.includes(user.email)) {
+            setTimeout(() => { window.location.href = 'admin.html'; }, 1200);
+          } else {
+            setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+          }
+        }
+      });
     </script>
 </body>
 </html>

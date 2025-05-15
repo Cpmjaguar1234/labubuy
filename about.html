@@ -24,13 +24,15 @@
         </div>
     </header>
     <nav>
-        <ul>
+        <ul id="main-nav">
             <li><a href="index.html">HOME</a></li>
             <li><a href="shop.html">SHOP</a></li>
             <li><a href="instructions.html">INSTRUCTIONS</a></li>
             <li><a href="about.html">About Labubuy</a></li>
             <li><a href="contact.html">Contact</a></li>
-            <li><a href="admin.html">Admin</a></li> </ul>
+            <li id="admin-link" style="display:none;"><a href="admin.html">Admin</a></li>
+            <li id="orders-link" style="display:none;"><a href="orders.html">Orders</a></li>
+        </ul>
     </nav>
     <div class="container">
         <div class="content">
@@ -147,3 +149,40 @@ renderCart();
 </script>
 </body>
 </html>
+
+<script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAHgPtlNvBvSgzi8R-C6v9-FBh6vcNxBX4",
+    authDomain: "labubuy.firebaseapp.com",
+    projectId: "labubuy",
+    storageBucket: "labubuy.firebasestorage.app",
+    messagingSenderId: "444655424305",
+    appId: "1:444655424305:web:13d057b3014cef994a1610"
+  };
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  const auth = firebase.auth();
+  const allowedEmails = ["bigjaguar20112@gmail.com", "rachanon232010@gmail.com"];
+  function updateNav(user) {
+    const adminLink = document.getElementById('admin-link');
+    const ordersLink = document.getElementById('orders-link');
+    if (adminLink && ordersLink) {
+      if (user && allowedEmails.includes(user.email)) {
+        adminLink.style.display = 'inline-block';
+        ordersLink.style.display = 'inline-block';
+      } else {
+        adminLink.style.display = 'none';
+        ordersLink.style.display = 'none';
+      }
+    }
+  }
+  auth.onAuthStateChanged(function(user) {
+    updateNav(user);
+  });
+  window.addEventListener('DOMContentLoaded', function() {
+    updateNav(auth.currentUser);
+  });
+</script>
