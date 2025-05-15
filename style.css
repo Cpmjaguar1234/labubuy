@@ -16,13 +16,57 @@ body {
     border-radius: 8px; /* Added border-radius */
 }
 
+/* Header Flexbox Centering */
 header {
-    background-color: #b0c4de; /* Based on your previous code */
-    color: #000000; /* Based on your previous code */
-    padding: 10px 0;
-    text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0;
+  position: relative;
 }
-
+.header-left {
+  flex: 1 1 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.header-left h1 {
+  margin: 0;
+  font-size: 2.2em;
+  text-align: center;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  position: absolute;
+  right: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+#signin-icon-btn, #cart-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+  padding: 0;
+}
+@media (max-width: 600px) {
+  header {
+    flex-direction: column;
+    padding: 16px 0;
+  }
+  .header-left {
+    justify-content: center;
+  }
+  .header-right {
+    position: static;
+    transform: none;
+    margin-top: 10px;
+    right: 0;
+  }
+}
 header h1 {
     margin: 0;
 }
