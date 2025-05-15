@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labubuy - Shop</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Add some specific styles for the shop page */
+        .product-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive grid */
+            gap: 20px; /* Space between products */
+            margin-top: 20px;
+        }
+
+        .product-item {
+            border: 1px solid #ccc;
+            padding: 15px;
+            text-align: center;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.05);
+            text-decoration: none; /* Remove underline from the link */
+            color: inherit; /* Inherit text color */
+            display: block; /* Make the whole item clickable */
+        }
+
+        .product-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .product-item h3 {
+            margin: 5px 0;
+            font-size: 1.2em;
+        }
+
+        .product-item p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .product-item .price {
+            font-weight: bold;
+            color: #000; /* Price color */
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Labubuy</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="index.html">HOME</a></li>
+            <li><a href="shop.html">SHOP</a></li>
+            <li><a href="instructions.html">INSTRUCTIONS</a></li>
+            <li><a href="about.html">About Labubuy</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <div class="content">
+            <h2>Our Collectibles</h2>
+
+            <div class="product-list">
+                <a href="your-first-product.html" class="product-item">
+                    <img src="https://placehold.co/250x250/b0c4de/000?text=Product+Image+1" alt="Product Name 1"> <h3>Product Name 1</h3>
+                    <p>Brief description of Product 1.</p>
+                    <p class="price">$15.00</p>
+                </a>
+
+                <a href="your-second-product.html" class="product-item">
+                    <img src="https://placehold.co/250x250/b0c4de/000?text=Product+Image+2" alt="Product Name 2"> <h3>Product Name 2</h3>
+                    <p>Brief description of Product 2.</p>
+                    <p class="price">$18.00</p>
+                </a>
+
+                </div>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2025 Labubuy. All rights reserved.</p>
+        <p>Powered by Static HTML & Vercel</p>
+    </footer>
+</body>
+</html>
