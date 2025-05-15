@@ -1,36 +1,36 @@
 {
   "routes": [
     {
-      "source": "/index",
-      "destination": "/index.html"
+      "src": "/index",
+      "dest": "/index.html"
     },
     {
-      "source": "/",
-      "destination": "/index.html"
+      "src": "/",
+      "dest": "/index.html"
     },
     {
-      "source": "/shop",
-      "destination": "/shop.html"
+      "src": "/shop",
+      "dest": "/shop.html"
     },
     {
-      "source": "/about",
-      "destination": "/about.html"
+      "src": "/about",
+      "dest": "/about.html"
     },
     {
-      "source": "/contact",
-      "destination": "/contact.html"
+      "src": "/contact",
+      "dest": "/contact.html"
     },
     {
-      "source": "/signin",
-      "destination": "/signin.html"
+      "src": "/signin",
+      "dest": "/signin.html"
     },
     {
-      "source": "/listings",
-      "destination": "/manage-listings.html"
+      "src": "/listings",
+      "dest": "/manage-listings.html"
     },
     {
-      "source": "/orders",
-      "destination": "/orders.html"
+      "src": "/orders",
+      "dest": "/orders.html"
     }
   ]
 }
