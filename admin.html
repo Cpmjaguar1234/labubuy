@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Labubuy Admin Login</title>
-    <link rel="stylesheet" href="style.css"> <style>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <style>
         /* Specific styles for the admin login page */
         .login-container {
             max-width: 400px;
@@ -55,7 +57,8 @@
             <li><a href="instructions.html">INSTRUCTIONS</a></li>
             <li><a href="about.html">About Labubuy</a></li>
             <li><a href="contact.html">Contact</a></li>
-             <li><a href="admin.html">Admin</a></li> </ul>
+             <li><a href="admin.html">Admin</a></li>
+        </ul>
     </nav>
     <div class="container">
         <div class="login-container">
@@ -96,7 +99,7 @@
         const db = firebase.firestore(); // Initialize Firestore
 
         // Define the two allowed email addresses
-        const allowedEmails = ["bigjaguar20112@gmail.com", "rachanon232010@gmail.com"]; // REPLACE with the actual emails
+        const allowedEmails = ["bigjaguar20112@gmail.com", "rachanon232010@gmail.com"]; // Updated with user's emails
 
         // Get elements
         const signInButton = document.getElementById('google-sign-in-button');

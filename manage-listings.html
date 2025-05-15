@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Labubuy Admin - Manage Listings</title>
-    <link rel="stylesheet" href="style.css"> <style>
+    <link rel="stylesheet" href="style.css"> <link rel="icon" href="/favicon.ico" type="image/x-icon"> <style>
         /* Specific styles for the manage listings page */
         .manage-container {
             max-width: 800px;
@@ -187,8 +187,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-storage-compat.js"></script> <script>
-        // Your Firebase configuration
+    <script>
+        // Your Firebase configuration (still needed for Auth and Firestore reads)
         const firebaseConfig = {
             apiKey: "AIzaSyAHgPtlNvBvSgzi8R-C6v9-FBh6vcNxBX4",
             authDomain: "labubuy.firebaseapp.com",
@@ -201,12 +201,12 @@
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const storage = firebase.storage(); // Initialize Storage
+        const auth = firebase.auth(); // Auth is still needed for sign out
+        const db = firebase.firestore(); // Still need Firestore for reading listings
 
-        // Define the two allowed email addresses (must match the list in admin.html)
+        // Define the two allowed email addresses (still used for sign out redirect)
         const allowedEmails = ["bigjaguar20112@gmail.com", "rachanon232010@gmail.com"]; // Updated with user's emails
+
 
         // Get elements
         const productNameInput = document.getElementById('product-name');
@@ -222,27 +222,20 @@
         const uploadStatusDiv = document.getElementById('upload-status'); // Upload status element
 
 
-        // --- Authentication Check ---
+        // --- Authentication Check (Simplified - only redirects if NOT signed in) ---
         auth.onAuthStateChanged((user) => {
-            if (user) {
-                // User is signed in. Check if they are authorized.
-                const userEmail = user.email;
-                if (!allowedEmails.includes(userEmail)) {
-                    // User is signed in but not authorized, redirect them out
-                    alert("Access denied. You are not authorized to view this page.");
-                    auth.signOut();
-                    window.location.href = 'admin.html'; // Redirect to login
-                } else {
-                    // User is authorized, load listings
-                    console.log("Admin user authorized:", userEmail);
-                    loadListings(); // Load listings once authorized
-                }
-            } else {
-                // User is signed out, redirect to login page
+            if (!user) {
+                // If no user is signed in, redirect to login.
+                // We are no longer checking if the user is in the allowedEmails list here for access.
                 console.log("No user signed in. Redirecting to login.");
                 window.location.href = 'admin.html';
+            } else {
+                // User is signed in (any user). Load listings.
+                 console.log("User signed in (auth check bypassed for add/delete). Loading listings.");
+                 loadListings(); // Load listings once signed in
             }
         });
+
 
         // --- Sign Out ---
         signOutButton.addEventListener('click', () => {
@@ -256,7 +249,7 @@
         });
 
 
-        // --- Add Listing ---
+        // --- Add Listing (Calls Serverless Function - No Client-Side Auth Check for Add) ---
         addListingButton.addEventListener('click', async () => { // Made the function async
             const name = productNameInput.value.trim();
             const description = productDescriptionInput.value.trim();
@@ -275,68 +268,88 @@
             uploadStatusDiv.textContent = 'Processing...';
             errorMessage.style.display = 'none'; // Hide previous errors
 
+            let base64Image = null;
+            let fileName = null;
 
-            let finalImageUrl = '';
+            if (imageFile) {
+                // Read the file as a Data URL (base64)
+                uploadStatusDiv.textContent = 'Reading image file...';
+                base64Image = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result.split(',')[1]); // Get base64 part
+                    reader.onerror = reject;
+                    reader.readAsDataURL(imageFile);
+                });
+                fileName = imageFile.name;
+            }
 
             try {
-                if (imageFile) {
-                    // --- Handle Image Upload ---
-                    const storageRef = storage.ref();
-                    const imageName = `${Date.now()}-${imageFile.name}`; // Unique name
-                    const imageRef = storageRef.child(`product_images/${imageName}`);
+                // We no longer need the ID token here as the serverless function
+                // is configured to not require authentication for this specific task.
 
-                    uploadStatusDiv.textContent = 'Uploading image...';
-                    const snapshot = await imageRef.put(imageFile); // Upload the file
-                    finalImageUrl = await snapshot.ref.getDownloadURL(); // Get the download URL
-                    uploadStatusDiv.textContent = 'Image uploaded successfully.';
+                uploadStatusDiv.textContent = 'Sending data to server...';
 
-                } else if (imageUrl) {
-                    // --- Use Provided URL ---
-                    finalImageUrl = imageUrl;
-                    uploadStatusDiv.textContent = 'Using provided image URL.';
-                }
-
-                // --- Save Listing to Firestore ---
-                uploadStatusDiv.textContent = 'Saving listing data...';
-                await db.collection("products").add({
-                    name: name,
-                    description: description,
-                    price: price,
-                    imageUrl: finalImageUrl, // Use the final image URL
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp() // Add a timestamp
+                // Send data to the serverless function
+                const response = await fetch('/api/addListing', { // Endpoint for the serverless function
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Removed the Authorization header with ID token
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        description: description,
+                        price: price,
+                        imageUrl: imageUrl, // Pass the URL if provided
+                        imageFileBase64: base64Image, // Pass the base64 string if file uploaded
+                        imageFileName: fileName // Pass the file name if file uploaded
+                    })
                 });
 
-                uploadStatusDiv.textContent = 'Listing added successfully!';
-                console.log("Listing added successfully!");
+                const result = await response.text(); // Get the response text
 
-                // Clear form
-                productNameInput.value = '';
-                productDescriptionInput.value = '';
-                productPriceInput.value = '';
-                productImageInput.value = ''; // Clear file input
-                productImageUrlInput.value = ''; // Clear URL input
+                if (response.ok) {
+                    uploadStatusDiv.textContent = 'Listing added successfully!';
+                    console.log("Listing added successfully:", result);
 
-                // Reload listings to show the new one
-                loadListings();
+                    // Clear form
+                    productNameInput.value = '';
+                    productDescriptionInput.value = '';
+                    productPriceInput.value = '';
+                    productImageInput.value = ''; // Clear file input
+                    productImageUrlInput.value = ''; // Clear URL input
+
+                    // Reload listings to show the new one
+                    loadListings();
+
+                } else {
+                    // Handle errors from the serverless function
+                    console.error("Serverless function error:", result);
+                    errorMessage.textContent = `Error from server: ${result}`;
+                    errorMessage.style.display = 'block';
+                     uploadStatusDiv.style.display = 'none'; // Hide upload status on error
+                    alert(`Error adding listing: ${result}. See console for details.`);
+                }
 
             } catch (error) {
-                console.error("Error adding listing: ", error);
-                errorMessage.textContent = `Error adding listing: ${error.message}`;
+                console.error("Error adding listing:", error);
+                errorMessage.textContent = `Client-side error: ${error.message}`;
                 errorMessage.style.display = 'block';
                 uploadStatusDiv.style.display = 'none'; // Hide upload status on error
                 alert("Error adding listing. See console and error message for details.");
             } finally {
                 addListingButton.disabled = false; // Re-enable button
-                uploadStatusDiv.style.display = 'none'; // Hide upload status after process
+                 uploadStatusDiv.style.display = 'none'; // Hide upload status after process
             }
         });
 
-        // --- Load Listings ---
+        // --- Load Listings (Still read directly from Firestore) ---
         function loadListings() {
             loadingMessage.style.display = 'block'; // Show loading state
             errorMessage.style.display = 'none'; // Hide error message
             listingsListDiv.innerHTML = ''; // Clear previous listings
 
+            // Ensure the Firestore rules allow read: if true; for the 'products' collection
             db.collection("products").orderBy("createdAt", "desc").get().then((querySnapshot) => {
                 loadingMessage.style.display = 'none'; // Hide loading state
 
@@ -372,30 +385,23 @@
             });
         }
 
-        // --- Delete Listing (Basic Example) ---
-        // This is a basic implementation. For a real app, add a confirmation dialog.
+        // --- Delete Listing (Placeholder - Would also need a serverless function) ---
+        // This currently won't work with the new Firestore rules unless you add a rule allowing
+        // authenticated users to delete, or create another serverless function for deletion.
         listingsListDiv.addEventListener('click', (event) => {
             if (event.target.classList.contains('delete')) {
                 const listingId = event.target.dataset.id;
-                if (confirm("Are you sure you want to delete this listing?")) {
-                     db.collection("products").doc(listingId).delete().then(() => {
-                        console.log("Document successfully deleted!");
-                        loadListings(); // Reload list after deletion
-                    }).catch((error) => {
-                        console.error("Error removing document: ", error);
-                         alert("Error deleting listing. See console for details.");
-                    });
-                }
+                alert("Delete functionality needs to be updated to use a serverless function.");
+                // Implementing delete via serverless function requires:
+                // 1. Creating a new serverless function (e.g., api/deleteListing.js).
+                // 2. Sending a fetch request from here to that function with the listingId.
+                // 3. The serverless function uses the Admin SDK to delete the document in Firestore
+                //    and potentially the image in Storage.
             }
              // --- Edit Listing (Placeholder - More complex) ---
             if (event.target.classList.contains('edit')) {
                 const listingId = event.target.dataset.id;
                 alert("Edit functionality is not yet implemented.");
-                // Implementing edit requires:
-                // 1. Fetching the specific listing data by ID.
-                // 2. Populating the form with that data.
-                // 3. Changing the "Add Listing" button to an "Update Listing" button.
-                // 4. Handling the update logic in Firestore.
             }
         });
 
