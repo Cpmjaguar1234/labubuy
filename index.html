@@ -99,5 +99,80 @@
         updateNav(auth.currentUser);
       });
     </script>
+    <div class="cart-container" id="cart-container">
+      <div class="cart-header">
+        <span class="cart-title">Your Cart</span>
+        <button class="cart-close-btn" id="cart-close-btn" title="Close Cart">&times;</button>
+      </div>
+      <div class="cart-items" id="cart-items"></div>
+      <div class="cart-total" id="cart-total"></div>
+      <div class="cart-actions">
+        <button class="cart-checkout-btn" id="cart-checkout-btn">Checkout</button>
+      </div>
+      <div class="cart-empty" id="cart-empty" style="display:none;">Your cart is empty.</div>
+    </div>
 </body>
 </html>
+
+<script>
+// Cart logic
+const cartContainer = document.getElementById('cart-container');
+const cartItemsDiv = document.getElementById('cart-items');
+const cartTotalDiv = document.getElementById('cart-total');
+const cartEmptyDiv = document.getElementById('cart-empty');
+const cartCloseBtn = document.getElementById('cart-close-btn');
+const cartCheckoutBtn = document.getElementById('cart-checkout-btn');
+let cart = JSON.parse(localStorage.getItem('labubuy_cart') || '[]');
+function saveCart() {
+  localStorage.setItem('labubuy_cart', JSON.stringify(cart));
+}
+function renderCart() {
+  cartItemsDiv.innerHTML = '';
+  if (cart.length === 0) {
+    cartEmptyDiv.style.display = 'block';
+    cartTotalDiv.textContent = '';
+    cartCheckoutBtn.disabled = true;
+    return;
+  }
+  cartEmptyDiv.style.display = 'none';
+  let total = 0;
+  cart.forEach((item, idx) => {
+    total += parseFloat(item.price.replace(/[^\d.]/g, '')) || 0;
+    const cartItem = document.createElement('div');
+    cartItem.className = 'cart-item';
+    cartItem.innerHTML = `
+      <img src="${item.imageUrl}" alt="${item.name}">
+      <div class="cart-item-details">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-price">${item.price}</div>
+      </div>
+      <button class="cart-item-remove" title="Remove" data-idx="${idx}">&times;</button>
+    `;
+    cartItemsDiv.appendChild(cartItem);
+  });
+  cartTotalDiv.textContent = 'Total: $' + total.toFixed(2);
+  cartCheckoutBtn.disabled = false;
+}
+document.getElementById('cart-icon-btn').onclick = function() {
+  cartContainer.classList.toggle('active');
+};
+cartCloseBtn.onclick = function() {
+  cartContainer.classList.remove('active');
+};
+cartItemsDiv.onclick = function(e) {
+  if (e.target.classList.contains('cart-item-remove')) {
+    const idx = parseInt(e.target.getAttribute('data-idx'));
+    cart.splice(idx, 1);
+    saveCart();
+    renderCart();
+  }
+};
+cartCheckoutBtn.onclick = function() {
+  alert('Thank you for shopping with Labubuy! Please follow the instructions for cash payment.');
+  cart = [];
+  saveCart();
+  renderCart();
+  cartContainer.classList.remove('active');
+};
+renderCart();
+</script>

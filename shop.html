@@ -43,7 +43,7 @@
     </div>
     <div class="cart-container" id="cart-container">
       <div class="cart-header">
-        <span class="cart-title">🛒 Your Cart</span>
+        <span class="cart-title">Your Cart</span>
         <button class="cart-close-btn" id="cart-close-btn" title="Close Cart">&times;</button>
       </div>
       <div class="cart-items" id="cart-items"></div>
@@ -53,7 +53,6 @@
       </div>
       <div class="cart-empty" id="cart-empty" style="display:none;">Your cart is empty.</div>
     </div>
-    <button id="cart-toggle-btn" style="position:fixed;top:20px;right:32px;z-index:1100;background:#b0c4de;color:#222;border:none;border-radius:50%;width:48px;height:48px;box-shadow:0 2px 8px rgba(176,196,222,0.18);font-size:1.5em;cursor:pointer;transition:background 0.2s;">🛒</button>
     <footer>
         <p>&copy; 2025 Labubuy. All rights reserved.</p>
         <p>Powered by Static HTML & Vercel</p>
@@ -140,7 +139,7 @@
           cartCheckoutBtn.disabled = false;
         }
 
-        cartToggleBtn.onclick = function() {
+        document.getElementById('cart-icon-btn').onclick = function() {
           cartContainer.classList.toggle('active');
         };
         cartCloseBtn.onclick = function() {
