@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Labubuy - Welcome</title>
+    <title>Labubuy - Sign In / Sign Up</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="/favicon.ico" type="image/x-icon"> 
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 <body>
@@ -25,34 +25,19 @@
     </nav>
     <div class="container">
         <div class="content">
-            <h2>Welcome to Labubuy!</h2>
-            <p>Your destination for authentic Labubu and Sonny Angel collectibles.</p>
-            <p>Explore our selection in the <a href="shop.html">Shop</a> and follow the instructions on how to place your order for cash delivery.</p>
-            <p>Happy collecting!</p>
+            <h2>Sign In / Sign Up</h2>
+            <div id="auth-section">
+                <button id="google-signin-btn">Sign in with Google</button>
+                <button id="google-signout-btn" style="display:none;">Sign out</button>
+                <span id="user-info"></span>
+            </div>
+            <div id="signin-error" style="display:none;"></div>
         </div>
     </div>
     <footer>
         <p>&copy; 2025 Labubuy. All rights reserved.</p>
         <p>Powered by Static HTML & Vercel</p>
     </footer>
-    <script>
-      // GSAP Animations
-      window.addEventListener('DOMContentLoaded', function() {
-        gsap.from("header h1", {duration: 1, y: -50, opacity: 0, ease: "power2.out"});
-        gsap.from("nav ul li", {duration: 0.7, y: -30, opacity: 0, stagger: 0.1, delay: 0.5, ease: "power2.out"});
-        gsap.from(".content", {duration: 1, y: 40, opacity: 0, delay: 1, ease: "power2.out"});
-        gsap.from("footer", {duration: 1, y: 30, opacity: 0, delay: 1.2, ease: "power2.out"});
-        // Button/link hover effect
-        document.querySelectorAll('a, button').forEach(function(el) {
-          el.addEventListener('mouseenter', function() {
-            gsap.to(el, {scale: 1.08, duration: 0.2, ease: "power1.out"});
-          });
-          el.addEventListener('mouseleave', function() {
-            gsap.to(el, {scale: 1, duration: 0.2, ease: "power1.in"});
-          });
-        });
-      });
-    </script>
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth-compat.js"></script>
     <script>
@@ -83,10 +68,47 @@
       auth.onAuthStateChanged(function(user) {
         updateNav(user);
       });
-      // For static preview, show nav if already signed in
       window.addEventListener('DOMContentLoaded', function() {
         updateNav(auth.currentUser);
       });
+    </script>
+    const googleSigninBtn = document.getElementById('google-signin-btn');
+    const googleSignoutBtn = document.getElementById('google-signout-btn');
+    const userInfoSpan = document.getElementById('user-info');
+    const signinErrorDiv = document.getElementById('signin-error');
+    function renderUser(user) {
+      if (user) {
+        userInfoSpan.textContent = `Signed in as ${user.displayName} (${user.email})`;
+        googleSigninBtn.style.display = 'none';
+        googleSignoutBtn.style.display = 'inline-block';
+      } else {
+        userInfoSpan.textContent = '';
+        googleSigninBtn.style.display = 'inline-block';
+        googleSignoutBtn.style.display = 'none';
+      }
+    }
+    googleSigninBtn.onclick = function() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).catch(function(error) {
+        signinErrorDiv.textContent = 'Sign-in failed: ' + error.message;
+        signinErrorDiv.style.display = 'block';
+      });
+    };
+    googleSignoutBtn.onclick = function() {
+      auth.signOut();
+    };
+    auth.onAuthStateChanged(function(user) {
+      renderUser(user);
+      if (user) {
+        signinErrorDiv.style.display = 'none';
+        // Redirect based on role
+        if (allowedEmails.includes(user.email)) {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'index.html';
+        }
+      }
+    });
     </script>
 </body>
 </html>

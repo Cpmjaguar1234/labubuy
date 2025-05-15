@@ -7,6 +7,29 @@
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="/favicon.ico" type="image/x-icon"> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth-compat.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyAHgPtlNvBvSgzi8R-C6v9-FBh6vcNxBX4",
+        authDomain: "labubuy.firebaseapp.com",
+        projectId: "labubuy",
+        storageBucket: "labubuy.firebasestorage.app",
+        messagingSenderId: "444655424305",
+        appId: "1:444655424305:web:13d057b3014cef994a1610"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const allowedEmails = ["bigjaguar20112@gmail.com", "rachanon232010@gmail.com"];
+      auth.onAuthStateChanged(function(user) {
+        const ordersLink = document.getElementById('admin-orders-link');
+        if (user && allowedEmails.includes(user.email)) {
+          ordersLink.style.display = 'inline-block';
+        } else {
+          ordersLink.style.display = 'none';
+        }
+      });
+    </script>
 </head>
 <body>
     <header>
@@ -19,7 +42,8 @@
             <li><a href="instructions.html">INSTRUCTIONS</a></li>
             <li><a href="about.html">About Labubuy</a></li>
             <li><a href="contact.html">Contact</a></li>
-            <li><a href="admin.html">Admin</a></li> </ul>
+            <li><a href="admin.html">Admin</a></li>
+            <li id="admin-orders-link" style="display:none;"><a href="orders.html">Orders</a></li> </ul>
     </nav>
     <div class="container">
         <div class="content">
