@@ -169,11 +169,7 @@ cartItemsDiv.onclick = function(e) {
   }
 };
 cartCheckoutBtn.onclick = function() {
-  alert('Thank you for shopping with Labubuy! Please follow the instructions for cash payment.');
-  cart = [];
-  saveCart();
-  renderCart();
-  cartContainer.classList.remove('active');
+  window.location.href = 'checkout.html';
 };
 renderCart();
 </script>

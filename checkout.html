@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labubuy - Checkout</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <h1>Labubuy</h1>
+        </div>
+        <div class="header-right">
+            <button id="signin-icon-btn" title="Sign In" style="background:none;border:none;cursor:pointer;vertical-align:middle;" onclick="window.location.href='signin.html'">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="4" stroke="#222" stroke-width="2"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4" stroke="#222" stroke-width="2" fill="none"/></svg>
+            </button>
+            <button id="cart-icon-btn" title="Cart" style="background:none;border:none;cursor:pointer;vertical-align:middle;position:relative;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h15l-1.5 9h-13z" stroke="#222" stroke-width="2" fill="none"/><circle cx="9" cy="21" r="1" stroke="#222" stroke-width="2"/><circle cx="18" cy="21" r="1" stroke="#222" stroke-width="2"/></svg>
+                <span id="cart-count" style="position:absolute;top:0;right:0;background:#e74c3c;color:#fff;border-radius:50%;font-size:0.7em;padding:2px 5px;display:none;">0</span>
+            </button>
+        </div>
+    </header>
+    <nav>
+        <ul id="main-nav">
+            <li><a href="index.html">HOME</a></li>
+            <li><a href="shop.html">SHOP</a></li>
+            <li><a href="instructions.html">INSTRUCTIONS</a></li>
+            <li><a href="about.html">About Labubuy</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <div class="content">
+            <h2>Checkout</h2>
+            <div id="checkout-section">
+                <form id="checkout-form">
+                    <div>
+                        <label for="userName">Name:</label>
+                        <input type="text" id="userName" name="userName" required>
+                    </div>
+                    <div>
+                        <label for="userEmail">Email:</label>
+                        <input type="email" id="userEmail" name="userEmail" required>
+                    </div>
+                    <div id="checkout-cart-items"></div>
+                    <div id="checkout-total"></div>
+                    <button type="submit" id="place-order-btn">Place Order</button>
+                </form>
+                <div id="checkout-success" style="display:none;"></div>
+                <div id="checkout-error" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2025 Labubuy. All rights reserved.</p>
+        <p>Powered by Static HTML & Vercel</p>
+    </footer>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore-compat.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyAHgPtlNvBvSgzi8R-C6v9-FBh6vcNxBX4",
+        authDomain: "labubuy.firebaseapp.com",
+        projectId: "labubuy",
+        storageBucket: "labubuy.firebasestorage.app",
+        messagingSenderId: "444655424305",
+        appId: "1:444655424305:web:13d057b3014cef994a1610"
+      };
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      const db = firebase.firestore();
+      // Cart rendering
+      let cart = JSON.parse(localStorage.getItem('labubuy_cart') || '[]');
+      const checkoutCartItems = document.getElementById('checkout-cart-items');
+      const checkoutTotalDiv = document.getElementById('checkout-total');
+      function renderCheckoutCart() {
+        if (cart.length === 0) {
+          checkoutCartItems.innerHTML = '<p>Your cart is empty.</p>';
+          checkoutTotalDiv.textContent = '';
+          document.getElementById('place-order-btn').disabled = true;
+          return;
+        }
+        let html = '<ul>';
+        let total = 0;
+        cart.forEach(item => {
+          html += `<li>${item.name} x${item.quantity || 1} - ${item.price}</li>`;
+          total += parseFloat(item.price.replace(/[^\d.]/g, '')) * (item.quantity || 1);
+        });
+        html += '</ul>';
+        checkoutCartItems.innerHTML = html;
+        checkoutTotalDiv.textContent = 'Total: $' + total.toFixed(2);
+        document.getElementById('place-order-btn').disabled = false;
+      }
+      renderCheckoutCart();
+      // Place order
+      document.getElementById('checkout-form').onsubmit = function(e) {
+        e.preventDefault();
+        const userName = document.getElementById('userName').value.trim();
+        const userEmail = document.getElementById('userEmail').value.trim();
+        if (!userName || !userEmail) return;
+        if (cart.length === 0) return;
+        document.getElementById('place-order-btn').disabled = true;
+        db.collection('orders').add({
+          userName,
+          userEmail,
+          items: cart,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(function() {
+          localStorage.removeItem('labubuy_cart');
+          cart = [];
+          renderCheckoutCart();
+          document.getElementById('checkout-success').textContent = 'Order placed successfully!';
+          document.getElementById('checkout-success').style.display = 'block';
+          document.getElementById('checkout-error').style.display = 'none';
+        }).catch(function(error) {
+          document.getElementById('checkout-error').textContent = 'Error placing order: ' + error.message;
+          document.getElementById('checkout-error').style.display = 'block';
+          document.getElementById('checkout-success').style.display = 'none';
+          document.getElementById('place-order-btn').disabled = false;
+        });
+      };
+    </script>
+    <style>
+      #checkout-section { margin-top: 2rem; }
+      #checkout-form { display: flex; flex-direction: column; gap: 1rem; max-width: 400px; }
+      #checkout-form label { font-weight: 500; }
+      #checkout-form input { padding: 0.5em; border-radius: 4px; border: 1px solid #ccc; }
+      #checkout-cart-items ul { margin: 0.5rem 0 0 1.2rem; padding: 0; list-style: disc; }
+      #checkout-total { font-weight: bold; margin-top: 1rem; }
+      #checkout-success { color: #27ae60; margin-top: 1rem; }
+      #checkout-error { color: #e74c3c; margin-top: 1rem; }
+    </style>
+</body>
+</html>

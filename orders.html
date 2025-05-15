@@ -36,13 +36,13 @@
     </nav>
     <div class="container">
         <div class="content">
-            <h2>Your Orders</h2>
+            <h2>Customer Orders</h2>
             <div id="auth-section">
                 <button id="google-signin-btn">Sign in with Google</button>
                 <button id="google-signout-btn" style="display:none;">Sign out</button>
                 <span id="user-info"></span>
             </div>
-            <div id="orders-list"></div>
+            <div id="orders-list" class="orders-list"></div>
             <div id="orders-loading">Loading orders...</div>
             <div id="orders-error" style="display:none;"></div>
         </div>
@@ -144,12 +144,26 @@
               ordersListDiv.innerHTML = '<p>No orders found.</p>';
               return;
             }
-            let html = '<ul class="orders-ul">';
+            let html = '';
             querySnapshot.forEach(function(doc) {
               const order = doc.data();
-              html += `<li><strong>Order ID:</strong> ${doc.id}<br><strong>Name:</strong> ${order.userName || ''}<br><strong>Email:</strong> ${order.userEmail || ''}<br><strong>Items:</strong> ${order.items.map(i => i.name + ' (' + i.price + ')').join(', ')}<br><strong>Date:</strong> ${order.createdAt && order.createdAt.toDate ? order.createdAt.toDate().toLocaleString() : ''}</li>`;
+              html += `<div class="order-card">
+                <div class="order-header">
+                  <span class="order-id">Order #${doc.id}</span>
+                  <span class="order-date">${order.createdAt && order.createdAt.toDate ? order.createdAt.toDate().toLocaleString() : ''}</span>
+                </div>
+                <div class="order-user">
+                  <span class="order-user-name"><strong>Name:</strong> ${order.userName || ''}</span>
+                  <span class="order-user-email"><strong>Email:</strong> ${order.userEmail || ''}</span>
+                </div>
+                <div class="order-items">
+                  <strong>Items:</strong>
+                  <ul class="order-items-list">
+                    ${(order.items || []).map(i => `<li><span class="item-name">${i.name}</span> <span class="item-qty">x${i.quantity || 1}</span> <span class="item-price">${i.price}</span></li>`).join('')}
+                  </ul>
+                </div>
+              </div>`;
             });
-            html += '</ul>';
             ordersListDiv.innerHTML = html;
           })
           .catch(function(error) {
@@ -230,13 +244,68 @@
         }
       };
       cartCheckoutBtn.onclick = function() {
-        alert('Thank you for shopping with Labubuy! Please follow the instructions for cash payment.');
-        cart = [];
-        saveCart();
-        renderCart();
-        cartContainer.classList.remove('active');
+        window.location.href = 'checkout.html';
       };
       renderCart();
     </script>
 </body>
 </html>
+    <style>
+      .orders-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-top: 2rem;
+      }
+      .order-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        padding: 1.5rem 2rem;
+        transition: box-shadow 0.2s;
+        border-left: 5px solid #4f8cff;
+      }
+      .order-card:hover {
+        box-shadow: 0 4px 16px rgba(79,140,255,0.13);
+      }
+      .order-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.1em;
+        margin-bottom: 0.5rem;
+        color: #4f8cff;
+      }
+      .order-user {
+        margin-bottom: 0.5rem;
+        color: #333;
+      }
+      .order-user-name, .order-user-email {
+        display: block;
+        margin-bottom: 0.2rem;
+      }
+      .order-items-list {
+        margin: 0.5rem 0 0 1.2rem;
+        padding: 0;
+        list-style: disc;
+      }
+      .order-items-list li {
+        margin-bottom: 0.2rem;
+        font-size: 1em;
+        color: #222;
+      }
+      .item-name {
+        font-weight: 500;
+      }
+      .item-qty {
+        color: #4f8cff;
+        margin-left: 0.5em;
+      }
+      .item-price {
+        color: #888;
+        margin-left: 0.5em;
+      }
+      @media (max-width: 600px) {
+        .order-card { padding: 1rem; }
+        .orders-list { gap: 1rem; }
+      }
+    </style>
