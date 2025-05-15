@@ -9,27 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth-compat.js"></script>
-    <script>
-      const firebaseConfig = {
-        apiKey: "AIzaSyAHgPtlNvBvSgzi8R-C6v9-FBh6vcNxBX4",
-        authDomain: "labubuy.firebaseapp.com",
-        projectId: "labubuy",
-        storageBucket: "labubuy.firebasestorage.app",
-        messagingSenderId: "444655424305",
-        appId: "1:444655424305:web:13d057b3014cef994a1610"
-      };
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
-      const allowedEmails = ["bigjaguar20112@gmail.com", "rachanon232010@gmail.com"];
-      auth.onAuthStateChanged(function(user) {
-        const ordersLink = document.getElementById('admin-orders-link');
-        if (user && allowedEmails.includes(user.email)) {
-          ordersLink.style.display = 'inline-block';
-        } else {
-          ordersLink.style.display = 'none';
-        }
-      });
-    </script>
+
 </head>
 <body>
     <header>
@@ -47,14 +27,15 @@
         </div>
     </header>
     <nav>
-        <ul>
+        <ul id="main-nav">
             <li><a href="index.html">HOME</a></li>
             <li><a href="shop.html">SHOP</a></li>
             <li><a href="instructions.html">INSTRUCTIONS</a></li>
             <li><a href="about.html">About Labubuy</a></li>
             <li><a href="contact.html">Contact</a></li>
-            <li><a href="admin.html">Admin</a></li>
-            <li id="admin-orders-link" style="display:none;"><a href="orders.html">Orders</a></li> </ul>
+            <li id="admin-link" style="display:none;"><a href="admin.html">Admin</a></li>
+            <li id="orders-link" style="display:none;"><a href="orders.html">Orders</a></li>
+        </ul>
     </nav>
     <div class="container">
         <div class="content">
@@ -84,7 +65,7 @@
         // Hover animation for nav links
         document.querySelectorAll('nav ul li a').forEach(function(link) {
           link.addEventListener('mouseenter', function() {
-            gsap.to(link, {scale: 1.15, color: "#ff69b4", duration: 0.2, ease: "power1.out"});
+            gsap.to(link, {scale: 1.08, color: "#2196f3", duration: 0.2, ease: "power1.out"});
           });
           link.addEventListener('mouseleave', function() {
             gsap.to(link, {scale: 1, color: "", duration: 0.2, ease: "power1.in"});
@@ -99,6 +80,39 @@
             gsap.to(btn, {scale: 1, backgroundColor: "", duration: 0.2});
           });
         });
+      });
+      // Firebase Auth logic for admin/links
+      const firebaseConfig = {
+        apiKey: "AIzaSyAHgPtlNvBvSgzi8R-C6v9-FBh6vcNxBX4",
+        authDomain: "labubuy.firebaseapp.com",
+        projectId: "labubuy",
+        storageBucket: "labubuy.firebasestorage.app",
+        messagingSenderId: "444655424305",
+        appId: "1:444655424305:web:13d057b3014cef994a1610"
+      };
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      const auth = firebase.auth();
+      const allowedEmails = ["bigjaguar20112@gmail.com", "rachanon232010@gmail.com"];
+      function updateNav(user) {
+        const adminLink = document.getElementById('admin-link');
+        const ordersLink = document.getElementById('orders-link');
+        if (adminLink && ordersLink) {
+          if (user && allowedEmails.includes(user.email)) {
+            adminLink.style.display = 'inline-block';
+            ordersLink.style.display = 'inline-block';
+          } else {
+            adminLink.style.display = 'none';
+            ordersLink.style.display = 'none';
+          }
+        }
+      }
+      auth.onAuthStateChanged(function(user) {
+        updateNav(user);
+      });
+      window.addEventListener('DOMContentLoaded', function() {
+        updateNav(auth.currentUser);
       });
     </script>
     <div class="cart-container" id="cart-container">

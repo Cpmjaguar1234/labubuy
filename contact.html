@@ -26,12 +26,14 @@
       function updateNav(user) {
         const adminLink = document.getElementById('admin-link');
         const ordersLink = document.getElementById('orders-link');
-        if (user && allowedEmails.includes(user.email)) {
-          adminLink.style.display = 'inline-block';
-          ordersLink.style.display = 'inline-block';
-        } else {
-          adminLink.style.display = 'none';
-          ordersLink.style.display = 'none';
+        if (adminLink && ordersLink) {
+          if (user && allowedEmails.includes(user.email)) {
+            adminLink.style.display = 'inline-block';
+            ordersLink.style.display = 'inline-block';
+          } else {
+            adminLink.style.display = 'none';
+            ordersLink.style.display = 'none';
+          }
         }
       }
       auth.onAuthStateChanged(function(user) {
@@ -100,7 +102,7 @@
         // Hover animation for nav links
         document.querySelectorAll('nav ul li a').forEach(function(link) {
           link.addEventListener('mouseenter', function() {
-            gsap.to(link, {scale: 1.15, color: "#ff69b4", duration: 0.2, ease: "power1.out"});
+            gsap.to(link, {scale: 1.08, color: "#2196f3", duration: 0.2, ease: "power1.out"});
           });
           link.addEventListener('mouseleave', function() {
             gsap.to(link, {scale: 1, color: "", duration: 0.2, ease: "power1.in"});
