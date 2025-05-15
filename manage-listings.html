@@ -22,7 +22,8 @@
         }
 
         .listing-form input[type="text"],
-        .listing-form textarea {
+        .listing-form textarea,
+        .listing-form input[type="file"] { /* Added file input */
             width: 100%;
             padding: 8px;
             margin-bottom: 15px;
@@ -45,6 +46,11 @@
         .listing-form button:hover {
             opacity: 0.8;
         }
+         .listing-form button:disabled { /* Style for disabled button */
+            background-color: #ccc;
+            cursor: not-allowed;
+         }
+
 
         #listings-list {
             margin-top: 30px;
@@ -114,7 +120,7 @@
          #sign-out-button:hover {
             opacity: 0.8;
         }
-         #loading-message, #error-message { /* Added error message style */
+         #loading-message, #error-message, #upload-status { /* Added upload status */
             text-align: center;
             font-style: italic;
             color: #777;
@@ -122,6 +128,9 @@
          }
           #error-message {
              color: #dc3545; /* Red color for errors */
+         }
+         #upload-status {
+             color: #007bff; /* Blue color for upload status */
          }
     </style>
 </head>
@@ -154,11 +163,14 @@
                 <label for="product-price">Price:</label>
                 <input type="text" id="product-price" placeholder="e.g., $15.00" required>
 
-                <label for="product-image-url">Image URL:</label>
-                <input type="text" id="product-image-url" placeholder="e.g., https://example.com/image.jpg" required>
+                <label for="product-image">Upload Image:</label>
+                <input type="file" id="product-image" accept="image/*">
+
+                <label for="product-image-url">Or Add Image URL:</label>
+                <input type="text" id="product-image-url" placeholder="e.g., https://example.com/image.jpg">
 
                 <button id="add-listing-button">Add Listing</button>
-            </div>
+                <div id="upload-status" style="display: none;"></div> </div>
 
             <h3>Existing Listings</h3>
              <div id="loading-message">Loading listings...</div>
@@ -175,8 +187,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore-compat.js"></script>
-
-    <script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-storage-compat.js"></script> <script>
         // Your Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAHgPtlNvBvSgzi8R-C6v9-FBh6vcNxBX4",
@@ -192,20 +203,23 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const storage = firebase.storage(); // Initialize Storage
 
         // Define the two allowed email addresses (must match the list in admin.html)
-        const allowedEmails = ["bigjaguar20112@gmail.com", "rachanon232010@gmail.com"]; // REPLACE with the actual emails
+        const allowedEmails = ["bigjaguar20112@gmail.com", "rachanon232010@gmail.com"]; // Updated with user's emails
 
         // Get elements
         const productNameInput = document.getElementById('product-name');
         const productDescriptionInput = document.getElementById('product-description');
         const productPriceInput = document.getElementById('product-price');
-        const productImageUrlInput = document.getElementById('product-image-url');
+        const productImageInput = document.getElementById('product-image'); // File input
+        const productImageUrlInput = document.getElementById('product-image-url'); // URL input
         const addListingButton = document.getElementById('add-listing-button');
         const listingsListDiv = document.getElementById('listings-list');
         const signOutButton = document.getElementById('sign-out-button');
         const loadingMessage = document.getElementById('loading-message');
         const errorMessage = document.getElementById('error-message'); // Get error message element
+        const uploadStatusDiv = document.getElementById('upload-status'); // Upload status element
 
 
         // --- Authentication Check ---
@@ -243,36 +257,77 @@
 
 
         // --- Add Listing ---
-        addListingButton.addEventListener('click', () => {
+        addListingButton.addEventListener('click', async () => { // Made the function async
             const name = productNameInput.value.trim();
             const description = productDescriptionInput.value.trim();
             const price = productPriceInput.value.trim();
-            const imageUrl = productImageUrlInput.value.trim();
+            const imageFile = productImageInput.files[0]; // Get the selected file
+            const imageUrl = productImageUrlInput.value.trim(); // Get the URL input
 
-            if (name && description && price && imageUrl) {
-                db.collection("products").add({
+            // Basic validation: require name, description, price, AND either a file OR a URL
+            if (!name || !description || !price || (!imageFile && !imageUrl)) {
+                alert("Please fill in name, description, price, and provide either an image file or an image URL.");
+                return;
+            }
+
+            addListingButton.disabled = true; // Disable button during processing
+            uploadStatusDiv.style.display = 'block';
+            uploadStatusDiv.textContent = 'Processing...';
+            errorMessage.style.display = 'none'; // Hide previous errors
+
+
+            let finalImageUrl = '';
+
+            try {
+                if (imageFile) {
+                    // --- Handle Image Upload ---
+                    const storageRef = storage.ref();
+                    const imageName = `${Date.now()}-${imageFile.name}`; // Unique name
+                    const imageRef = storageRef.child(`product_images/${imageName}`);
+
+                    uploadStatusDiv.textContent = 'Uploading image...';
+                    const snapshot = await imageRef.put(imageFile); // Upload the file
+                    finalImageUrl = await snapshot.ref.getDownloadURL(); // Get the download URL
+                    uploadStatusDiv.textContent = 'Image uploaded successfully.';
+
+                } else if (imageUrl) {
+                    // --- Use Provided URL ---
+                    finalImageUrl = imageUrl;
+                    uploadStatusDiv.textContent = 'Using provided image URL.';
+                }
+
+                // --- Save Listing to Firestore ---
+                uploadStatusDiv.textContent = 'Saving listing data...';
+                await db.collection("products").add({
                     name: name,
                     description: description,
                     price: price,
-                    imageUrl: imageUrl,
+                    imageUrl: finalImageUrl, // Use the final image URL
                     createdAt: firebase.firestore.FieldValue.serverTimestamp() // Add a timestamp
-                })
-                .then((docRef) => {
-                    console.log("Document written with ID: ", docRef.id);
-                    // Clear form
-                    productNameInput.value = '';
-                    productDescriptionInput.value = '';
-                    productPriceInput.value = '';
-                    productImageUrlInput.value = '';
-                    // Reload listings to show the new one
-                    loadListings();
-                })
-                .catch((error) => {
-                    console.error("Error adding document: ", error);
-                    alert("Error adding listing. See console for details.");
                 });
-            } else {
-                alert("Please fill in all fields.");
+
+                uploadStatusDiv.textContent = 'Listing added successfully!';
+                console.log("Listing added successfully!");
+
+                // Clear form
+                productNameInput.value = '';
+                productDescriptionInput.value = '';
+                productPriceInput.value = '';
+                productImageInput.value = ''; // Clear file input
+                productImageUrlInput.value = ''; // Clear URL input
+
+                // Reload listings to show the new one
+                loadListings();
+
+            } catch (error) {
+                console.error("Error adding listing: ", error);
+                errorMessage.textContent = `Error adding listing: ${error.message}`;
+                errorMessage.style.display = 'block';
+                uploadStatusDiv.style.display = 'none'; // Hide upload status on error
+                alert("Error adding listing. See console and error message for details.");
+            } finally {
+                addListingButton.disabled = false; // Re-enable button
+                uploadStatusDiv.style.display = 'none'; // Hide upload status after process
             }
         });
 
