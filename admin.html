@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labubuy Admin Login</title>
+    <link rel="stylesheet" href="style.css"> <style>
+        /* Specific styles for the admin login page */
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        #google-sign-in-button {
+            display: inline-block;
+            background-color: #4285F4; /* Google blue */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+            text-decoration: none; /* If using an anchor tag */
+        }
+
+        #google-sign-in-button:hover {
+            background-color: #357ae8;
+        }
+
+        #login-status {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Labubuy Admin</h1>
+    </header>
+    <div class="container">
+        <div class="login-container">
+            <h2>Admin Login</h2>
+            <p>Sign in with your authorized Google account.</p>
+
+            <button id="google-sign-in-button">Sign in with Google</button>
+
+            <div id="login-status"></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Labubuy. All rights reserved.</p>
+        <p>Powered by Static HTML & Vercel</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore-compat.js"></script>
+
+
+    <script>
+        // Your Firebase configuration
+        // REPLACE WITH YOUR ACTUAL FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore(); // Initialize Firestore
+
+        // Define the two allowed email addresses
+        const allowedEmails = ["bigjaguar20112@gmail.com", "rachanon232010@gmail.com"]; // REPLACE with the actual emails
+
+        // Get elements
+        const signInButton = document.getElementById('google-sign-in-button');
+        const loginStatus = document.getElementById('login-status');
+
+        // Google Sign-in handler
+        signInButton.addEventListener('click', () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            // Optional: Force account selection
+            provider.setCustomParameters({
+                prompt: 'select_account'
+            });
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    // This gives you a Google Access Token. You can use it to access Google APIs.
+                    const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+                    const token = credential.accessToken;
+                    // The signed-in user info.
+                    const user = result.user;
+
+                    checkAuthorization(user);
+
+                }).catch((error) => {
+                    // Handle Errors here.
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    // The email of the user's account used.
+                    const email = error.email;
+                    // The AuthCredential type that was used.
+                    const credential = firebase.auth.GoogleAuthProvider.credentialFromError(error);
+
+                    console.error("Sign-in error:", errorMessage);
+                    loginStatus.textContent = `Error: ${errorMessage}`;
+                });
+        });
+
+        // Check user authorization
+        function checkAuthorization(user) {
+            if (user) {
+                const userEmail = user.email;
+                if (allowedEmails.includes(userEmail)) {
+                    loginStatus.textContent = `Signed in as ${userEmail}. Redirecting to control panel...`;
+                    // User is authorized, redirect to the main control panel page
+                    // We will create manage-listings.html next
+                    window.location.href = 'manage-listings.html';
+                } else {
+                    // User is signed in but not authorized
+                    loginStatus.textContent = `Access denied for ${userEmail}.`;
+                    auth.signOut(); // Sign out the unauthorized user
+                }
+            } else {
+                // No user is signed in.
+                loginStatus.textContent = 'Please sign in.';
+            }
+        }
+
+        // Check auth state on page load
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in. Check authorization immediately.
+                checkAuthorization(user);
+            } else {
+                // User is signed out.
+                loginStatus.textContent = 'Please sign in.';
+            }
+        });
+
+    </script>
+</body>
+</html>
