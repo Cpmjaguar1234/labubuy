@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Labubuy Admin - Manage Listings</title>
+    <title>Labubuy Listings - Manage Listings</title>
     <link rel="stylesheet" href="style.css"> <link rel="icon" href="/favicon.ico" type="image/x-icon"> <style>
         /* Specific styles for the manage listings page */
         .manage-container {
@@ -137,7 +137,7 @@
 <body>
     <header>
         <div style="display: flex; align-items: center; justify-content: space-between;">
-            <h1>Labubuy Admin</h1>
+            <h1>Labubuy Listings</h1>
             <div style="display: flex; align-items: center; gap: 16px;">
                 <button id="account-btn" title="Account" style="background: none; border: none; cursor: pointer;">
                   <img src="/account-icon.svg" alt="Account" style="width: 32px; height: 32px; vertical-align: middle;">
@@ -156,7 +156,7 @@
             <li><a href="instructions.html">INSTRUCTIONS</a></li>
             <li><a href="about.html">About Labubuy</a></li>
             <li><a href="contact.html">Contact</a></li>
-            <li><a href="admin.html">Admin</a></li>
+            <li><a href="manage-listings.html">Listings</a></li>
             <li><a href="orders.html">Orders</a></li> </ul>
     </nav>
     <div class="container">
@@ -234,17 +234,14 @@
         const uploadStatusDiv = document.getElementById('upload-status'); // Upload status element
 
 
-        // --- Authentication Check (Simplified - only redirects if NOT signed in) ---
+        // --- Authentication Check (Admins Only) ---
         auth.onAuthStateChanged((user) => {
-            if (!user) {
-                // If no user is signed in, redirect to login.
-                // We are no longer checking if the user is in the allowedEmails list here for access.
-                console.log("No user signed in. Redirecting to login.");
-                window.location.href = 'admin.html';
+            if (!user || !allowedEmails.includes(user.email)) {
+                // If not signed in or not admin, redirect to signin page.
+                window.location.href = 'signin.html';
             } else {
-                // User is signed in (any user). Load listings.
-                 console.log("User signed in (auth check bypassed for add/delete). Loading listings.");
-                 loadListings(); // Load listings once signed in
+                // User is signed in and is admin. Load listings.
+                loadListings();
             }
         });
 
