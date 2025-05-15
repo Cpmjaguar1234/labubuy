@@ -254,3 +254,52 @@ footer {
         padding: 12px 6px 10px 6px;
     }
 }
+.header-left {
+    float: left;
+    display: flex;
+    align-items: center;
+}
+.header-right {
+    float: right;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-right: 24px;
+}
+header::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+.header-right button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 4px;
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+}
+.header-right svg {
+    display: block;
+}
+#cart-count {
+    min-width: 18px;
+    min-height: 18px;
+    text-align: center;
+    font-size: 0.8em;
+    line-height: 1.2;
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    z-index: 2;
+}
+@media (max-width: 600px) {
+    .header-left h1 {
+        font-size: 1.1em;
+    }
+    .header-right {
+        margin-right: 8px;
+        gap: 6px;
+    }
+}

@@ -33,7 +33,18 @@
 </head>
 <body>
     <header>
-        <h1>Labubuy</h1>
+        <div class="header-left">
+            <h1>Labubuy</h1>
+        </div>
+        <div class="header-right">
+            <button id="signin-icon-btn" title="Sign In" style="background:none;border:none;cursor:pointer;vertical-align:middle;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="4" stroke="#222" stroke-width="2"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4" stroke="#222" stroke-width="2" fill="none"/></svg>
+            </button>
+            <button id="cart-icon-btn" title="Cart" style="background:none;border:none;cursor:pointer;vertical-align:middle;position:relative;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h15l-1.5 9h-13z" stroke="#222" stroke-width="2" fill="none"/><circle cx="9" cy="21" r="1" stroke="#222" stroke-width="2"/><circle cx="18" cy="21" r="1" stroke="#222" stroke-width="2"/></svg>
+                <span id="cart-count" style="position:absolute;top:0;right:0;background:#e74c3c;color:#fff;border-radius:50%;font-size:0.7em;padding:2px 5px;display:none;">0</span>
+            </button>
+        </div>
     </header>
     <nav>
         <ul>
