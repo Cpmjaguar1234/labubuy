@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labubuy Admin - Manage Listings</title>
+    <link rel="stylesheet" href="style.css"> <style>
+        /* Specific styles for the manage listings page */
+        .manage-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .listing-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .listing-form input[type="text"],
+        .listing-form textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Include padding in width */
+        }
+
+        .listing-form button {
+            background-color: #b0c4de;
+            color: #000000;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .listing-form button:hover {
+            opacity: 0.8;
+        }
+
+        #listings-list {
+            margin-top: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .listing-item {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .listing-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .listing-item-info {
+            flex-grow: 1;
+        }
+
+        .listing-item-info h3 {
+            margin: 0 0 5px 0;
+        }
+
+        .listing-item-actions button {
+            background-color: #dc3545; /* Red for delete */
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-left: 5px;
+        }
+
+         .listing-item-actions button.edit {
+            background-color: #ffc107; /* Yellow for edit */
+            color: #000;
+        }
+
+        .listing-item-actions button:hover {
+            opacity: 0.8;
+        }
+
+        #sign-out-button {
+            background-color: #6c757d; /* Gray */
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+         #sign-out-button:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Labubuy Admin</h1>
+    </header>
+    <div class="container">
+        <div class="manage-container">
+             <button id="sign-out-button">Sign Out</button>
+            <h2>Manage Product Listings</h2>
+
+            <h3>Add New Listing</h3>
+            <div class="listing-form">
+                <label for="product-name">Product Name:</label>
+                <input type="text" id="product-name" required>
+
+                <label for="product-description">Description:</label>
+                <textarea id="product-description" rows="4" required></textarea>
+
+                <label for="product-price">Price:</label>
+                <input type="text" id="product-price" placeholder="e.g., $15.00" required>
+
+                <label for="product-image-url">Image URL:</label>
+                <input type="text" id="product-image-url" placeholder="e.g., https://example.com/image.jpg" required>
+
+                <button id="add-listing-button">Add Listing</button>
+            </div>
+
+            <h3>Existing Listings</h3>
+            <div id="listings-list">
+                <p>Loading listings...</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Labubuy. All rights reserved.</p>
+        <p>Powered by Static HTML & Vercel</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Your Firebase configuration
+        // REPLACE WITH YOUR ACTUAL FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Define the two allowed email addresses (must match the list in admin.html)
+        const allowedEmails = ["allowed_email_1@gmail.com", "allowed_email_2@gmail.com"]; // REPLACE with the actual emails
+
+        // Get elements
+        const productNameInput = document.getElementById('product-name');
+        const productDescriptionInput = document.getElementById('product-description');
+        const productPriceInput = document.getElementById('product-price');
+        const productImageUrlInput = document.getElementById('product-image-url');
+        const addListingButton = document.getElementById('add-listing-button');
+        const listingsListDiv = document.getElementById('listings-list');
+        const signOutButton = document.getElementById('sign-out-button');
+
+
+        // --- Authentication Check ---
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in. Check if they are authorized.
+                const userEmail = user.email;
+                if (!allowedEmails.includes(userEmail)) {
+                    // User is signed in but not authorized, redirect them out
+                    alert("Access denied. You are not authorized to view this page.");
+                    auth.signOut();
+                    window.location.href = 'admin.html'; // Redirect to login
+                } else {
+                    // User is authorized, load listings
+                    console.log("Admin user authorized:", userEmail);
+                    loadListings(); // Load listings once authorized
+                }
+            } else {
+                // User is signed out, redirect to login page
+                console.log("No user signed in. Redirecting to login.");
+                window.location.href = 'admin.html';
+            }
+        });
+
+        // --- Sign Out ---
+        signOutButton.addEventListener('click', () => {
+            auth.signOut().then(() => {
+                console.log("User signed out.");
+                window.location.href = 'admin.html'; // Redirect to login after sign out
+            }).catch((error) => {
+                console.error("Sign out error:", error);
+            });
+        });
+
+
+        // --- Add Listing ---
+        addListingButton.addEventListener('click', () => {
+            const name = productNameInput.value.trim();
+            const description = productDescriptionInput.value.trim();
+            const price = productPriceInput.value.trim();
+            const imageUrl = productImageurlInput.value.trim();
+
+            if (name && description && price && imageUrl) {
+                db.collection("products").add({
+                    name: name,
+                    description: description,
+                    price: price,
+                    imageUrl: imageUrl,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp() // Add a timestamp
+                })
+                .then((docRef) => {
+                    console.log("Document written with ID: ", docRef.id);
+                    // Clear form
+                    productNameInput.value = '';
+                    productDescriptionInput.value = '';
+                    productPriceInput.value = '';
+                    productImageUrlInput.value = '';
+                    // Reload listings to show the new one
+                    loadListings();
+                })
+                .catch((error) => {
+                    console.error("Error adding document: ", error);
+                    alert("Error adding listing. See console for details.");
+                });
+            } else {
+                alert("Please fill in all fields.");
+            }
+        });
+
+        // --- Load Listings ---
+        function loadListings() {
+            listingsListDiv.innerHTML = '<p>Loading listings...</p>'; // Show loading state
+
+            db.collection("products").orderBy("createdAt", "desc").get().then((querySnapshot) => {
+                listingsListDiv.innerHTML = ''; // Clear loading state
+                if (querySnapshot.empty) {
+                    listingsListDiv.innerHTML = '<p>No listings found.</p>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const listing = doc.data();
+                    const listingElement = document.createElement('div');
+                    listingElement.classList.add('listing-item');
+                    listingElement.innerHTML = `
+                        <img src="${listing.imageUrl}" alt="${listing.name}">
+                        <div class="listing-item-info">
+                            <h3>${listing.name}</h3>
+                            <p>${listing.price}</p>
+                            <p>${listing.description.substring(0, 100)}...</p> </div>
+                        <div class="listing-item-actions">
+                            <button class="edit" data-id="${doc.id}">Edit</button>
+                            <button class="delete" data-id="${doc.id}">Delete</button>
+                        </div>
+                    `;
+                     listingsListDiv.appendChild(listingElement);
+                });
+            })
+            .catch((error) => {
+                console.error("Error getting documents: ", error);
+                 listingsListDiv.innerHTML = '<p>Error loading listings.</p>';
+            });
+        }
+
+        // --- Delete Listing (Basic Example) ---
+        // This is a basic implementation. For a real app, add a confirmation dialog.
+        listingsListDiv.addEventListener('click', (event) => {
+            if (event.target.classList.contains('delete')) {
+                const listingId = event.target.dataset.id;
+                if (confirm("Are you sure you want to delete this listing?")) {
+                     db.collection("products").doc(listingId).delete().then(() => {
+                        console.log("Document successfully deleted!");
+                        loadListings(); // Reload list after deletion
+                    }).catch((error) => {
+                        console.error("Error removing document: ", error);
+                         alert("Error deleting listing. See console for details.");
+                    });
+                }
+            }
+             // --- Edit Listing (Placeholder - More complex) ---
+            if (event.target.classList.contains('edit')) {
+                const listingId = event.target.dataset.id;
+                alert("Edit functionality is not yet implemented.");
+                // Implementing edit requires:
+                // 1. Fetching the specific listing data by ID.
+                // 2. Populating the form with that data.
+                // 3. Changing the "Add Listing" button to an "Update Listing" button.
+                // 4. Handling the update logic in Firestore.
+            }
+        });
+
+
+        // Initial load of listings is handled by the auth state change listener
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labubuy - Product Details</title> <link rel="stylesheet" href="style.css">
+    <style>
+        /* Specific styles for the product detail page */
+        .product-detail {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 30px;
+        }
+
+        .product-detail-image {
+            flex: 1 1 300px; /* Allow flexing, minimum width 300px */
+            text-align: center;
+        }
+
+        .product-detail-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-detail-info {
+            flex: 2 1 300px; /* Allow flexing, minimum width 300px */
+        }
+
+        .product-detail-info h2 {
+            margin-top: 0;
+            font-size: 2em;
+        }
+
+        .product-detail-info .price {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #000; /* Price color */
+            margin-bottom: 20px;
+        }
+
+        .product-detail-info p {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+
+        /* Style for the "How to Order" button/link */
+        .order-button {
+            display: inline-block;
+            background-color: #b0c4de; /* Based on your previous code */
+            color: #000000; /* Based on your previous code */
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .order-button:hover {
+            opacity: 0.8;
+        }
+         #product-details-container {
+            /* Container for the dynamic content */
+         }
+         #loading-message {
+            text-align: center;
+            font-style: italic;
+            color: #777;
+         }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Labubuy</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="index.html">HOME</a></li>
+            <li><a href="shop.html">SHOP</a></li>
+            <li><a href="instructions.html">INSTRUCTIONS</a></li>
+            <li><a href="about.html">About Labubuy</a></li>
+            <li><a href="contact.html">Contact</a></li>
+             <li><a href="admin.html">Admin</a></li> </ul>
+    </nav>
+    <div class="container">
+        <div class="content">
+             <div id="loading-message">Loading product details...</div>
+            <div id="product-details-container">
+                </div>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2025 Labubuy. All rights reserved.</p>
+        <p>Powered by Static HTML & Vercel</p>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Your Firebase configuration
+        // REPLACE WITH YOUR ACTUAL FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const productDetailsContainer = document.getElementById('product-details-container');
+        const loadingMessage = document.getElementById('loading-message');
+        const pageTitle = document.querySelector('title');
+
+        // Function to get query parameters from the URL
+        function getQueryParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Load product details from Firestore
+        function loadProductDetails() {
+            const productId = getQueryParameter('id');
+
+            if (!productId) {
+                loadingMessage.style.display = 'none';
+                productDetailsContainer.innerHTML = '<p>Product ID not found.</p>';
+                return;
+            }
+
+            loadingMessage.style.display = 'block'; // Show loading message
+            productDetailsContainer.innerHTML = ''; // Clear previous content
+
+            db.collection("products").doc(productId).get().then((doc) => {
+                loadingMessage.style.display = 'none'; // Hide loading message
+
+                if (doc.exists) {
+                    const product = doc.data();
+                     pageTitle.textContent = `Labubuy - ${product.name}`; // Update page title
+
+                    const productDetailElement = document.createElement('div');
+                    productDetailElement.classList.add('product-detail');
+                    productDetailElement.innerHTML = `
+                        <div class="product-detail-image">
+                            <img src="${product.imageUrl}" alt="${product.name}">
+                        </div>
+                        <div class="product-detail-info">
+                            <h2>${product.name}</h2>
+                            <p class="price">${product.price}</p>
+                            <p>${product.description}</p>
+
+                            <p>To order this item, please follow our instructions:</p>
+                            <a href="instructions.html" class="order-button">How to Order</a>
+                        </div>
+                    `;
+                    productDetailsContainer.appendChild(productDetailElement);
+
+                } else {
+                    productDetailsContainer.innerHTML = '<p>Product not found.</p>';
+                }
+            })
+            .catch((error) => {
+                console.error("Error getting product document:", error);
+                 loadingMessage.style.display = 'none';
+                 productDetailsContainer.innerHTML = '<p>Error loading product details.</p>';
+            });
+        }
+
+        // Load product details when the page loads
+        loadProductDetails();
+
+    </script>
+</body>
+</html>
