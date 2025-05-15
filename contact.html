@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Labubuy - Contact</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="/favicon.ico" type="image/x-icon"> </head>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon"> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+</head>
 <body>
     <header>
         <h1>Labubuy</h1>
@@ -29,5 +31,32 @@
         <p>&copy; 2025 Labubuy. All rights reserved.</p>
         <p>Powered by Static HTML & Vercel</p>
     </footer>
+    <script>
+      // GSAP Animations
+      window.addEventListener('DOMContentLoaded', function() {
+        gsap.from("header", {duration: 1, y: -50, opacity: 0, ease: "power2.out"});
+        gsap.from("nav ul li", {duration: 0.8, y: -20, opacity: 0, stagger: 0.1, delay: 0.5, ease: "power2.out"});
+        gsap.from(".container", {duration: 1, y: 50, opacity: 0, delay: 0.8, ease: "power2.out"});
+        gsap.from("footer", {duration: 1, opacity: 0, delay: 1, ease: "power2.out"});
+        // Hover animation for nav links
+        document.querySelectorAll('nav ul li a').forEach(function(link) {
+          link.addEventListener('mouseenter', function() {
+            gsap.to(link, {scale: 1.15, color: "#ff69b4", duration: 0.2, ease: "power1.out"});
+          });
+          link.addEventListener('mouseleave', function() {
+            gsap.to(link, {scale: 1, color: "", duration: 0.2, ease: "power1.in"});
+          });
+        });
+        // Subtle hover for buttons (if any in future)
+        document.querySelectorAll('button').forEach(function(btn) {
+          btn.addEventListener('mouseenter', function() {
+            gsap.to(btn, {scale: 1.08, backgroundColor: "#ffe4ec", duration: 0.2});
+          });
+          btn.addEventListener('mouseleave', function() {
+            gsap.to(btn, {scale: 1, backgroundColor: "", duration: 0.2});
+          });
+        });
+      });
+    </script>
 </body>
 </html>

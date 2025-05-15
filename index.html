@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Labubuy - Welcome</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="/favicon.ico" type="image/x-icon"> </head>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon"> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+</head>
 <body>
     <header>
         <h1>Labubuy</h1>
@@ -31,5 +33,23 @@
         <p>&copy; 2025 Labubuy. All rights reserved.</p>
         <p>Powered by Static HTML & Vercel</p>
     </footer>
+    <script>
+      // GSAP Animations
+      window.addEventListener('DOMContentLoaded', function() {
+        gsap.from("header h1", {duration: 1, y: -50, opacity: 0, ease: "power2.out"});
+        gsap.from("nav ul li", {duration: 0.7, y: -30, opacity: 0, stagger: 0.1, delay: 0.5, ease: "power2.out"});
+        gsap.from(".content", {duration: 1, y: 40, opacity: 0, delay: 1, ease: "power2.out"});
+        gsap.from("footer", {duration: 1, y: 30, opacity: 0, delay: 1.2, ease: "power2.out"});
+        // Button/link hover effect
+        document.querySelectorAll('a, button').forEach(function(el) {
+          el.addEventListener('mouseenter', function() {
+            gsap.to(el, {scale: 1.08, duration: 0.2, ease: "power1.out"});
+          });
+          el.addEventListener('mouseleave', function() {
+            gsap.to(el, {scale: 1, duration: 0.2, ease: "power1.in"});
+          });
+        });
+      });
+    </script>
 </body>
 </html>

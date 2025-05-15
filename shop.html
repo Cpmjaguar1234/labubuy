@@ -5,67 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Labubuy - Shop</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="/favicon.ico" type="image/x-icon"> <style>
-        /* Add some specific styles for the shop page */
-        .product-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive grid */
-            gap: 20px; /* Space between products */
-            margin-top: 20px;
-        }
-
-        .product-item {
-            border: 1px solid #ccc;
-            padding: 15px;
-            text-align: center;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.05);
-            text-decoration: none; /* Remove underline from the link */
-            color: inherit; /* Inherit text color */
-            display: block; /* Make the whole item clickable */
-            transition: transform 0.3s ease, box-shadow 0.3s ease; /* Added transition */
-        }
-
-        .product-item:hover {
-            transform: translateY(-5px); /* Add a slight lift effect */
-            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-
-        .product-item img {
-            max-width: 100%;
-            height: 200px; /* Fixed height for consistency */
-            object-fit: cover; /* Crop image to fit */
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-
-        .product-item h3 {
-            margin: 5px 0;
-            font-size: 1.2em;
-        }
-
-        .product-item p {
-            margin: 5px 0;
-            color: #555;
-        }
-
-        .product-item .price {
-            font-weight: bold;
-            color: #000; /* Price color */
-            font-size: 1.1em;
-        }
-         #loading-message, #error-message { /* Added error message style */
-            text-align: center;
-            font-style: italic;
-            color: #777;
-            margin-top: 20px;
-         }
-          #error-message {
-             color: #dc3545; /* Red color for errors */
-         }
-    </style>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon"> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 <body>
     <header>
@@ -78,24 +19,53 @@
             <li><a href="instructions.html">INSTRUCTIONS</a></li>
             <li><a href="about.html">About Labubuy</a></li>
             <li><a href="contact.html">Contact</a></li>
-             <li><a href="admin.html">Admin</a></li> </ul>
+            <li><a href="admin.html">Admin</a></li> </ul>
     </nav>
     <div class="container">
         <div class="content">
             <h2>Our Collectibles</h2>
 
             <div id="loading-message">Loading listings...</div>
-            <div id="error-message" style="display: none;"></div> <div class="product-list" id="product-list-container">
-                </div>
+            <div id="error-message" style="display: none;"></div> 
+            <div class="product-list" id="product-list-container"></div>
         </div>
     </div>
+    <div class="cart-container" id="cart-container">
+      <div class="cart-header">
+        <span class="cart-title">🛒 Your Cart</span>
+        <button class="cart-close-btn" id="cart-close-btn" title="Close Cart">&times;</button>
+      </div>
+      <div class="cart-items" id="cart-items"></div>
+      <div class="cart-total" id="cart-total"></div>
+      <div class="cart-actions">
+        <button class="cart-checkout-btn" id="cart-checkout-btn">Checkout</button>
+      </div>
+      <div class="cart-empty" id="cart-empty" style="display:none;">Your cart is empty.</div>
+    </div>
+    <button id="cart-toggle-btn" style="position:fixed;top:20px;right:32px;z-index:1100;background:#b0c4de;color:#222;border:none;border-radius:50%;width:48px;height:48px;box-shadow:0 2px 8px rgba(176,196,222,0.18);font-size:1.5em;cursor:pointer;transition:background 0.2s;">🛒</button>
     <footer>
         <p>&copy; 2025 Labubuy. All rights reserved.</p>
         <p>Powered by Static HTML & Vercel</p>
     </footer>
-
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore-compat.js"></script>
+    <script>
+      // GSAP Animations
+      window.addEventListener('DOMContentLoaded', function() {
+        gsap.from("header h1", {duration: 1, y: -50, opacity: 0, ease: "power2.out"});
+        gsap.from("nav ul li", {duration: 0.7, y: -30, opacity: 0, stagger: 0.1, delay: 0.5, ease: "power2.out"});
+        gsap.from(".content", {duration: 1, y: 40, opacity: 0, delay: 1, ease: "power2.out"});
+        gsap.from("footer", {duration: 1, y: 30, opacity: 0, delay: 1.2, ease: "power2.out"});
+        document.querySelectorAll('a, button').forEach(function(el) {
+          el.addEventListener('mouseenter', function() {
+            gsap.to(el, {scale: 1.08, duration: 0.2, ease: "power1.out"});
+          });
+          el.addEventListener('mouseleave', function() {
+            gsap.to(el, {scale: 1, duration: 0.2, ease: "power1.in"});
+          });
+        });
+      });
+    </script>
 
     <script>
         // Your Firebase configuration
@@ -106,25 +76,89 @@
             storageBucket: "labubuy.firebasestorage.app",
             messagingSenderId: "444655424305",
             appId: "1:444655424305:web:13d057b3014cef994a1610",
-            measurementId: "G-5XQQD6J93L" // Measurement ID is optional for basic use
+            measurementId: "G-5XQQD6J93L"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
         const productListContainer = document.getElementById('product-list-container');
         const loadingMessage = document.getElementById('loading-message');
-        const errorMessage = document.getElementById('error-message'); // Get error message element
+        const errorMessage = document.getElementById('error-message');
+
+        // Cart logic
+        const cartContainer = document.getElementById('cart-container');
+        const cartItemsDiv = document.getElementById('cart-items');
+        const cartTotalDiv = document.getElementById('cart-total');
+        const cartEmptyDiv = document.getElementById('cart-empty');
+        const cartToggleBtn = document.getElementById('cart-toggle-btn');
+        const cartCloseBtn = document.getElementById('cart-close-btn');
+        const cartCheckoutBtn = document.getElementById('cart-checkout-btn');
+
+        let cart = JSON.parse(localStorage.getItem('labubuy_cart') || '[]');
+
+        function saveCart() {
+          localStorage.setItem('labubuy_cart', JSON.stringify(cart));
+        }
+
+        function renderCart() {
+          cartItemsDiv.innerHTML = '';
+          if (cart.length === 0) {
+            cartEmptyDiv.style.display = 'block';
+            cartTotalDiv.textContent = '';
+            cartCheckoutBtn.disabled = true;
+            return;
+          }
+          cartEmptyDiv.style.display = 'none';
+          let total = 0;
+          cart.forEach((item, idx) => {
+            total += parseFloat(item.price.replace(/[^\d.]/g, '')) || 0;
+            const cartItem = document.createElement('div');
+            cartItem.className = 'cart-item';
+            cartItem.innerHTML = `
+              <img src="${item.imageUrl}" alt="${item.name}">
+              <div class="cart-item-details">
+                <div class="cart-item-name">${item.name}</div>
+                <div class="cart-item-price">${item.price}</div>
+              </div>
+              <button class="cart-item-remove" title="Remove" data-idx="${idx}">&times;</button>
+            `;
+            cartItemsDiv.appendChild(cartItem);
+          });
+          cartTotalDiv.textContent = 'Total: $' + total.toFixed(2);
+          cartCheckoutBtn.disabled = false;
+        }
+
+        cartToggleBtn.onclick = function() {
+          cartContainer.classList.toggle('active');
+        };
+        cartCloseBtn.onclick = function() {
+          cartContainer.classList.remove('active');
+        };
+        cartItemsDiv.onclick = function(e) {
+          if (e.target.classList.contains('cart-item-remove')) {
+            const idx = parseInt(e.target.getAttribute('data-idx'));
+            cart.splice(idx, 1);
+            saveCart();
+            renderCart();
+          }
+        };
+        cartCheckoutBtn.onclick = function() {
+          alert('Thank you for shopping with Labubuy! Please follow the instructions for cash payment.');
+          cart = [];
+          saveCart();
+          renderCart();
+          cartContainer.classList.remove('active');
+        };
 
         // Load products from Firestore
         function loadProducts() {
-            loadingMessage.style.display = 'block'; // Show loading message
-            errorMessage.style.display = 'none'; // Hide error message
-            productListContainer.innerHTML = ''; // Clear previous listings
+            loadingMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+            productListContainer.innerHTML = '';
 
             db.collection("products").orderBy("createdAt", "desc").get().then((querySnapshot) => {
-                loadingMessage.style.display = 'none'; // Hide loading message
+                loadingMessage.style.display = 'none';
 
                 if (querySnapshot.empty) {
                     productListContainer.innerHTML = '<p>No products available yet.</p>';
@@ -133,31 +167,48 @@
 
                 querySnapshot.forEach((doc) => {
                     const product = doc.data();
-                    const productId = doc.id; // Get the document ID to use in the link
+                    const productId = doc.id;
 
-                    const productItem = document.createElement('a');
-                    productItem.href = `product.html?id=${productId}`; // Link to the dynamic product page
+                    const productItem = document.createElement('div');
                     productItem.classList.add('product-item');
                     productItem.innerHTML = `
                         <img src="${product.imageUrl}" alt="${product.name}">
                         <h3>${product.name}</h3>
-                        <p>${product.description.substring(0, 50)}...</p> <p class="price">${product.price}</p>
+                        <p>${product.description.substring(0, 50)}...</p>
+                        <p class="price">${product.price}</p>
+                        <button class="add-to-cart-btn">Add to Cart</button>
                     `;
+                    productItem.querySelector('.add-to-cart-btn').onclick = function(e) {
+                      e.stopPropagation();
+                      cart.push({
+                        name: product.name,
+                        price: product.price,
+                        imageUrl: product.imageUrl
+                      });
+                      saveCart();
+                      renderCart();
+                      cartContainer.classList.add('active');
+                    };
+                    productItem.onclick = function(e) {
+                      if (!e.target.classList.contains('add-to-cart-btn')) {
+                        window.location.href = `product.html?id=${productId}`;
+                      }
+                    };
                     productListContainer.appendChild(productItem);
                 });
             })
             .catch((error) => {
                 console.error("Error getting products: ", error);
                 loadingMessage.style.display = 'none';
-                errorMessage.textContent = `Error loading products: ${error.message}`; // Display error message
+                errorMessage.textContent = `Error loading products: ${error.message}`;
                 errorMessage.style.display = 'block';
-                productListContainer.innerHTML = ''; // Clear previous listings
+                productListContainer.innerHTML = '';
             });
         }
 
-        // Load products when the page loads
+        // Load products and cart when the page loads
         loadProducts();
-
+        renderCart();
     </script>
 </body>
 </html>
