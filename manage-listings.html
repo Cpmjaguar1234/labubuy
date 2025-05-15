@@ -39,6 +39,7 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 1em;
+            transition: opacity 0.3s ease; /* Added transition */
         }
 
         .listing-form button:hover {
@@ -60,6 +61,7 @@
             display: flex;
             gap: 20px;
             align-items: center;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
         }
 
         .listing-item img {
@@ -86,6 +88,7 @@
             cursor: pointer;
             font-size: 0.9em;
             margin-left: 5px;
+            transition: opacity 0.3s ease; /* Added transition */
         }
 
          .listing-item-actions button.edit {
@@ -106,16 +109,35 @@
             cursor: pointer;
             font-size: 0.9em;
             margin-bottom: 20px;
+             transition: opacity 0.3s ease; /* Added transition */
         }
          #sign-out-button:hover {
             opacity: 0.8;
         }
+         #loading-message, #error-message { /* Added error message style */
+            text-align: center;
+            font-style: italic;
+            color: #777;
+            margin-top: 20px;
+         }
+          #error-message {
+             color: #dc3545; /* Red color for errors */
+         }
     </style>
 </head>
 <body>
     <header>
         <h1>Labubuy Admin</h1>
     </header>
+     <nav>
+        <ul>
+            <li><a href="index.html">HOME</a></li>
+            <li><a href="shop.html">SHOP</a></li>
+            <li><a href="instructions.html">INSTRUCTIONS</a></li>
+            <li><a href="about.html">About Labubuy</a></li>
+            <li><a href="contact.html">Contact</a></li>
+             <li><a href="admin.html">Admin</a></li> </ul>
+    </nav>
     <div class="container">
         <div class="manage-container">
              <button id="sign-out-button">Sign Out</button>
@@ -139,9 +161,9 @@
             </div>
 
             <h3>Existing Listings</h3>
-            <div id="listings-list">
-                <p>Loading listings...</p>
-            </div>
+             <div id="loading-message">Loading listings...</div>
+             <div id="error-message" style="display: none;"></div> <div id="listings-list">
+                </div>
         </div>
     </div>
 
@@ -156,14 +178,14 @@
 
     <script>
         // Your Firebase configuration
-        // REPLACE WITH YOUR ACTUAL FIREBASE CONFIG
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyAHgPtlNvBvSgzi8R-C6v9-FBh6vcNxBX4",
+            authDomain: "labubuy.firebaseapp.com",
+            projectId: "labubuy",
+            storageBucket: "labubuy.firebasestorage.app",
+            messagingSenderId: "444655424305",
+            appId: "1:444655424305:web:13d057b3014cef994a1610",
+            measurementId: "G-5XQQD6J93L" // Measurement ID is optional for basic use
         };
 
         // Initialize Firebase
@@ -182,6 +204,8 @@
         const addListingButton = document.getElementById('add-listing-button');
         const listingsListDiv = document.getElementById('listings-list');
         const signOutButton = document.getElementById('sign-out-button');
+        const loadingMessage = document.getElementById('loading-message');
+        const errorMessage = document.getElementById('error-message'); // Get error message element
 
 
         // --- Authentication Check ---
@@ -213,6 +237,7 @@
                 window.location.href = 'admin.html'; // Redirect to login after sign out
             }).catch((error) => {
                 console.error("Sign out error:", error);
+                alert("Error signing out. See console for details.");
             });
         });
 
@@ -222,7 +247,7 @@
             const name = productNameInput.value.trim();
             const description = productDescriptionInput.value.trim();
             const price = productPriceInput.value.trim();
-            const imageUrl = productImageurlInput.value.trim();
+            const imageUrl = productImageUrlInput.value.trim();
 
             if (name && description && price && imageUrl) {
                 db.collection("products").add({
@@ -253,10 +278,13 @@
 
         // --- Load Listings ---
         function loadListings() {
-            listingsListDiv.innerHTML = '<p>Loading listings...</p>'; // Show loading state
+            loadingMessage.style.display = 'block'; // Show loading state
+            errorMessage.style.display = 'none'; // Hide error message
+            listingsListDiv.innerHTML = ''; // Clear previous listings
 
             db.collection("products").orderBy("createdAt", "desc").get().then((querySnapshot) => {
-                listingsListDiv.innerHTML = ''; // Clear loading state
+                loadingMessage.style.display = 'none'; // Hide loading state
+
                 if (querySnapshot.empty) {
                     listingsListDiv.innerHTML = '<p>No listings found.</p>';
                     return;
@@ -282,7 +310,10 @@
             })
             .catch((error) => {
                 console.error("Error getting documents: ", error);
-                 listingsListDiv.innerHTML = '<p>Error loading listings.</p>';
+                 loadingMessage.style.display = 'none';
+                 errorMessage.textContent = `Error loading listings: ${error.message}`; // Display error message
+                 errorMessage.style.display = 'block';
+                 listingsListDiv.innerHTML = ''; // Clear previous listings
             });
         }
 

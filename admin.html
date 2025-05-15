@@ -27,6 +27,7 @@
             font-size: 1em;
             margin-top: 20px;
             text-decoration: none; /* If using an anchor tag */
+            transition: background-color 0.3s ease; /* Added transition */
         }
 
         #google-sign-in-button:hover {
@@ -36,13 +37,26 @@
         #login-status {
             margin-top: 20px;
             font-weight: bold;
+            color: #333; /* Default text color */
         }
+         #login-status.error {
+            color: #dc3545; /* Red color for errors */
+         }
     </style>
 </head>
 <body>
     <header>
         <h1>Labubuy Admin</h1>
     </header>
+     <nav>
+        <ul>
+            <li><a href="index.html">HOME</a></li>
+            <li><a href="shop.html">SHOP</a></li>
+            <li><a href="instructions.html">INSTRUCTIONS</a></li>
+            <li><a href="about.html">About Labubuy</a></li>
+            <li><a href="contact.html">Contact</a></li>
+             <li><a href="admin.html">Admin</a></li> </ul>
+    </nav>
     <div class="container">
         <div class="login-container">
             <h2>Admin Login</h2>
@@ -66,14 +80,14 @@
 
     <script>
         // Your Firebase configuration
-        // REPLACE WITH YOUR ACTUAL FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyAHgPtlNvBvSgzi8R-C6v9-FBh6vcNxBX4",
             authDomain: "labubuy.firebaseapp.com",
             projectId: "labubuy",
             storageBucket: "labubuy.firebasestorage.app",
             messagingSenderId: "444655424305",
-            appId: "1:444655424305:web:13d057b3014cef994a1610"
+            appId: "1:444655424305:web:13d057b3014cef994a1610",
+            measurementId: "G-5XQQD6J93L" // Measurement ID is optional for basic use
         };
 
         // Initialize Firebase
@@ -116,6 +130,7 @@
 
                     console.error("Sign-in error:", errorMessage);
                     loginStatus.textContent = `Error: ${errorMessage}`;
+                    loginStatus.classList.add('error'); // Add error class for styling
                 });
         });
 
@@ -125,17 +140,19 @@
                 const userEmail = user.email;
                 if (allowedEmails.includes(userEmail)) {
                     loginStatus.textContent = `Signed in as ${userEmail}. Redirecting to control panel...`;
+                    loginStatus.classList.remove('error'); // Remove error class
                     // User is authorized, redirect to the main control panel page
-                    // We will create manage-listings.html next
                     window.location.href = 'manage-listings.html';
                 } else {
                     // User is signed in but not authorized
                     loginStatus.textContent = `Access denied for ${userEmail}.`;
+                    loginStatus.classList.add('error'); // Add error class
                     auth.signOut(); // Sign out the unauthorized user
                 }
             } else {
                 // No user is signed in.
                 loginStatus.textContent = 'Please sign in.';
+                 loginStatus.classList.remove('error'); // Remove error class
             }
         }
 
@@ -147,6 +164,7 @@
             } else {
                 // User is signed out.
                 loginStatus.textContent = 'Please sign in.';
+                 loginStatus.classList.remove('error'); // Remove error class
             }
         });
 

@@ -24,11 +24,19 @@
             text-decoration: none; /* Remove underline from the link */
             color: inherit; /* Inherit text color */
             display: block; /* Make the whole item clickable */
+            transition: transform 0.3s ease, box-shadow 0.3s ease; /* Added transition */
         }
+
+        .product-item:hover {
+            transform: translateY(-5px); /* Add a slight lift effect */
+            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
 
         .product-item img {
             max-width: 100%;
-            height: auto;
+            height: 200px; /* Fixed height for consistency */
+            object-fit: cover; /* Crop image to fit */
             border-radius: 4px;
             margin-bottom: 10px;
         }
@@ -48,6 +56,15 @@
             color: #000; /* Price color */
             font-size: 1.1em;
         }
+         #loading-message, #error-message { /* Added error message style */
+            text-align: center;
+            font-style: italic;
+            color: #777;
+            margin-top: 20px;
+         }
+          #error-message {
+             color: #dc3545; /* Red color for errors */
+         }
     </style>
 </head>
 <body>
@@ -61,25 +78,14 @@
             <li><a href="instructions.html">INSTRUCTIONS</a></li>
             <li><a href="about.html">About Labubuy</a></li>
             <li><a href="contact.html">Contact</a></li>
-        </ul>
+             <li><a href="admin.html">Admin</a></li> </ul>
     </nav>
     <div class="container">
         <div class="content">
             <h2>Our Collectibles</h2>
 
-            <div class="product-list">
-                <a href="your-first-product.html" class="product-item">
-                    <img src="https://placehold.co/250x250/b0c4de/000?text=Product+Image+1" alt="Product Name 1"> <h3>Product Name 1</h3>
-                    <p>Brief description of Product 1.</p>
-                    <p class="price">$15.00</p>
-                </a>
-
-                <a href="your-second-product.html" class="product-item">
-                    <img src="https://placehold.co/250x250/b0c4de/000?text=Product+Image+2" alt="Product Name 2"> <h3>Product Name 2</h3>
-                    <p>Brief description of Product 2.</p>
-                    <p class="price">$18.00</p>
-                </a>
-
+            <div id="loading-message">Loading listings...</div>
+            <div id="error-message" style="display: none;"></div> <div class="product-list" id="product-list-container">
                 </div>
         </div>
     </div>
@@ -87,5 +93,71 @@
         <p>&copy; 2025 Labubuy. All rights reserved.</p>
         <p>Powered by Static HTML & Vercel</p>
     </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHgPtlNvBvSgzi8R-C6v9-FBh6vcNxBX4",
+            authDomain: "labubuy.firebaseapp.com",
+            projectId: "labubuy",
+            storageBucket: "labubuy.firebasestorage.app",
+            messagingSenderId: "444655424305",
+            appId: "1:444655424305:web:13d057b3014cef994a1610",
+            measurementId: "G-5XQQD6J93L" // Measurement ID is optional for basic use
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const productListContainer = document.getElementById('product-list-container');
+        const loadingMessage = document.getElementById('loading-message');
+        const errorMessage = document.getElementById('error-message'); // Get error message element
+
+        // Load products from Firestore
+        function loadProducts() {
+            loadingMessage.style.display = 'block'; // Show loading message
+            errorMessage.style.display = 'none'; // Hide error message
+            productListContainer.innerHTML = ''; // Clear previous listings
+
+            db.collection("products").orderBy("createdAt", "desc").get().then((querySnapshot) => {
+                loadingMessage.style.display = 'none'; // Hide loading message
+
+                if (querySnapshot.empty) {
+                    productListContainer.innerHTML = '<p>No products available yet.</p>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const product = doc.data();
+                    const productId = doc.id; // Get the document ID to use in the link
+
+                    const productItem = document.createElement('a');
+                    productItem.href = `product.html?id=${productId}`; // Link to the dynamic product page
+                    productItem.classList.add('product-item');
+                    productItem.innerHTML = `
+                        <img src="${product.imageUrl}" alt="${product.name}">
+                        <h3>${product.name}</h3>
+                        <p>${product.description.substring(0, 50)}...</p> <p class="price">${product.price}</p>
+                    `;
+                    productListContainer.appendChild(productItem);
+                });
+            })
+            .catch((error) => {
+                console.error("Error getting products: ", error);
+                loadingMessage.style.display = 'none';
+                errorMessage.textContent = `Error loading products: ${error.message}`; // Display error message
+                errorMessage.style.display = 'block';
+                productListContainer.innerHTML = ''; // Clear previous listings
+            });
+        }
+
+        // Load products when the page loads
+        loadProducts();
+
+    </script>
 </body>
 </html>

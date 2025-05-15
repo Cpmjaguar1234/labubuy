@@ -13,6 +13,7 @@ body {
     padding: 20px;
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px; /* Added border-radius */
 }
 
 header {
@@ -32,6 +33,7 @@ nav ul {
     text-align: center;
     background-color: #ffffff; /* Based on your previous code */
     padding: 10px 0;
+    margin-bottom: 20px; /* Added margin */
 }
 
 nav ul li {
@@ -43,6 +45,7 @@ nav ul li a {
     text-decoration: none;
     color: #000000; /* Based on your previous code */
     font-weight: bold;
+    transition: color 0.3s ease; /* Added transition */
 }
 
 nav ul li a:hover {
@@ -60,4 +63,5 @@ footer {
     background-color: #ffffff; /* Based on your previous code */
     color: #000;
     font-size: 0.9em;
+    border-top: 1px solid #eee; /* Added border */
 }

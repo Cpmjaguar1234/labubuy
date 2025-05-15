@@ -21,7 +21,7 @@
             max-width: 100%;
             height: auto;
             border-radius: 8px;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Added shadow */
         }
 
         .product-detail-info {
@@ -55,6 +55,7 @@
             border-radius: 5px;
             font-weight: bold;
             margin-top: 20px;
+            transition: opacity 0.3s ease; /* Added transition */
         }
 
         .order-button:hover {
@@ -63,10 +64,14 @@
          #product-details-container {
             /* Container for the dynamic content */
          }
-         #loading-message {
+         #loading-message, #error-message { /* Added error message style */
             text-align: center;
             font-style: italic;
             color: #777;
+            margin-top: 20px;
+         }
+         #error-message {
+             color: #dc3545; /* Red color for errors */
          }
     </style>
 </head>
@@ -86,7 +91,7 @@
     <div class="container">
         <div class="content">
              <div id="loading-message">Loading product details...</div>
-            <div id="product-details-container">
+             <div id="error-message" style="display: none;"></div> <div id="product-details-container">
                 </div>
         </div>
     </div>
@@ -100,14 +105,14 @@
 
     <script>
         // Your Firebase configuration
-        // REPLACE WITH YOUR ACTUAL FIREBASE CONFIG
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyAHgPtlNvBvSgzi8R-C6v9-FBh6vcNxBX4",
+            authDomain: "labubuy.firebaseapp.com",
+            projectId: "labubuy",
+            storageBucket: "labubuy.firebasestorage.app",
+            messagingSenderId: "444655424305",
+            appId: "1:444655424305:web:13d057b3014cef994a1610",
+            measurementId: "G-5XQQD6J93L" // Measurement ID is optional for basic use
         };
 
         // Initialize Firebase
@@ -116,6 +121,7 @@
 
         const productDetailsContainer = document.getElementById('product-details-container');
         const loadingMessage = document.getElementById('loading-message');
+        const errorMessage = document.getElementById('error-message'); // Get error message element
         const pageTitle = document.querySelector('title');
 
         // Function to get query parameters from the URL
@@ -130,11 +136,14 @@
 
             if (!productId) {
                 loadingMessage.style.display = 'none';
-                productDetailsContainer.innerHTML = '<p>Product ID not found.</p>';
+                errorMessage.textContent = 'Error: Product ID not found in URL.'; // Display error
+                errorMessage.style.display = 'block';
+                productDetailsContainer.innerHTML = ''; // Clear previous content
                 return;
             }
 
             loadingMessage.style.display = 'block'; // Show loading message
+            errorMessage.style.display = 'none'; // Hide error message
             productDetailsContainer.innerHTML = ''; // Clear previous content
 
             db.collection("products").doc(productId).get().then((doc) => {
@@ -168,7 +177,9 @@
             .catch((error) => {
                 console.error("Error getting product document:", error);
                  loadingMessage.style.display = 'none';
-                 productDetailsContainer.innerHTML = '<p>Error loading product details.</p>';
+                 errorMessage.textContent = `Error loading product details: ${error.message}`; // Display error message
+                 errorMessage.style.display = 'block';
+                 productDetailsContainer.innerHTML = ''; // Clear previous content
             });
         }
 
